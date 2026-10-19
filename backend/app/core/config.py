@@ -14,14 +14,14 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "My Blog API"
-    database_url: str = "postgresql+asyncpg://blog_user:change-me@127.0.0.1:5432/my_blog"
-    jwt_secret: str = "change-me-in-env"
+    database_url: str
+    jwt_secret: str
     jwt_expire_days: int = 7
     admin_username: str = "admin"
-    admin_password: str = "change-me"
+    admin_password: str
     admin_enabled: bool = True
     upload_dir: str = str(BASE_DIR / "uploads")
-    ip_hash_salt: str = "change-me-in-env"
+    ip_hash_salt: str
     cookie_secure: bool = False
     site_origin: str = "http://localhost:3000"
 
