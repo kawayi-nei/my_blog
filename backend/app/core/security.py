@@ -6,6 +6,7 @@ from pwdlib import PasswordHash
 from app.core.config import get_settings
 
 password_hasher = PasswordHash.recommended()
+DUMMY_PASSWORD_HASH = password_hasher.hash("not-a-real-password")
 
 
 def hash_password(password: str) -> str:
@@ -30,7 +31,12 @@ def create_access_token(user_id: int) -> str:
 def decode_access_token(token: str) -> int | None:
     settings = get_settings()
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=["HS256"],
+            options={"require": ["exp", "sub"]},
+        )
         return int(payload["sub"])
     except (jwt.PyJWTError, KeyError, ValueError):
         return None

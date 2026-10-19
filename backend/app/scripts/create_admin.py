@@ -10,23 +10,25 @@ from app.models.user import User
 
 async def main() -> None:
     settings = get_settings()
-    async with SessionLocal() as db:
-        result = await db.execute(
-            select(User).where(User.username == settings.admin_username)
-        )
-        user = result.scalar_one_or_none()
-        if user is None:
-            user = User(
-                username=settings.admin_username,
-                password_hash=hash_password(settings.admin_password),
+    try:
+        async with SessionLocal() as db:
+            result = await db.execute(
+                select(User).where(User.username == settings.admin_username)
             )
-            db.add(user)
-            print(f"created admin: {settings.admin_username}")
-        else:
-            user.password_hash = hash_password(settings.admin_password)
-            print(f"updated admin password: {settings.admin_username}")
-        await db.commit()
-    await engine.dispose()
+            user = result.scalar_one_or_none()
+            if user is None:
+                user = User(
+                    username=settings.admin_username,
+                    password_hash=hash_password(settings.admin_password),
+                )
+                db.add(user)
+                print(f"created admin: {settings.admin_username}")
+            else:
+                user.password_hash = hash_password(settings.admin_password)
+                print(f"updated admin password: {settings.admin_username}")
+            await db.commit()
+    finally:
+        await engine.dispose()
 
 
 if __name__ == "__main__":

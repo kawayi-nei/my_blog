@@ -8,15 +8,15 @@ class SlidingWindowLimiter:
         self.window_seconds = window_seconds
         self._events: dict[str, deque[float]] = defaultdict(deque)
 
-    def is_limited(self, key: str) -> bool:
+    def try_acquire(self, key: str) -> bool:
         now = monotonic()
         events = self._events[key]
         while events and now - events[0] > self.window_seconds:
             events.popleft()
-        return len(events) >= self.limit
-
-    def hit(self, key: str) -> None:
-        self._events[key].append(monotonic())
+        if len(events) >= self.limit:
+            return False
+        events.append(now)
+        return True
 
     def reset(self, key: str) -> None:
         self._events.pop(key, None)

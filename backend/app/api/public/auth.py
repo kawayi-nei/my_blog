@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from app.api.deps import COOKIE_NAME, get_current_user
 from app.core.config import get_settings
-from app.core.security import create_access_token, verify_password
+from app.core.security import (
+    DUMMY_PASSWORD_HASH,
+    create_access_token,
+    verify_password,
+)
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse, MeResponse
@@ -25,13 +30,14 @@ async def login(
         raise HTTPException(status_code=404)
 
     client_ip = request.client.host if request.client else "unknown"
-    if login_limiter.is_limited(client_ip):
+    if not login_limiter.try_acquire(client_ip):
         raise HTTPException(status_code=429, detail="尝试次数过多，请稍后再试")
 
     result = await db.execute(select(User).where(User.username == payload.username))
     user = result.scalar_one_or_none()
-    if user is None or not verify_password(payload.password, user.password_hash):
-        login_limiter.hit(client_ip)
+    password_hash = user.password_hash if user is not None else DUMMY_PASSWORD_HASH
+    valid = await run_in_threadpool(verify_password, payload.password, password_hash)
+    if user is None or not valid:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
 
     login_limiter.reset(client_ip)
@@ -50,9 +56,16 @@ async def login(
 
 @router.post("/logout", status_code=204)
 async def logout(response: Response) -> None:
-    if not get_settings().admin_enabled:
+    settings = get_settings()
+    if not settings.admin_enabled:
         raise HTTPException(status_code=404)
-    response.delete_cookie(COOKIE_NAME, path="/")
+    response.delete_cookie(
+        COOKIE_NAME,
+        path="/",
+        secure=settings.cookie_secure,
+        httponly=True,
+        samesite="lax",
+    )
 
 
 @router.get("/me", response_model=MeResponse)
