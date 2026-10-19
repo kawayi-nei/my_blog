@@ -135,6 +135,7 @@ git commit -m "chore: scaffold Next.js frontend"
 - 创建：`backend/pytest.ini`
 - 创建：`backend/tests/conftest.py`
 - 创建：`backend/tests/test_health.py`
+- 创建：`backend/tests/test_config.py`
 - 创建：`backend/requirements.txt`
 
 - [ ] **步骤 1：创建测试数据库**
@@ -156,7 +157,13 @@ from pathlib import Path
 import pytest_asyncio
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parents[1] / ".env.test", override=True)
+env_test = Path(__file__).resolve().parents[1] / ".env.test"
+if not env_test.exists():
+    raise RuntimeError(
+        f"Missing {env_test}; copy .env.test.example and fill in credentials"
+    )
+
+load_dotenv(env_test, override=True)
 
 from httpx import ASGITransport, AsyncClient  # noqa: E402
 
@@ -179,11 +186,23 @@ async def test_health(client):
     assert response.json() == {"status": "ok"}
 ```
 
+创建 `backend/tests/test_config.py`：
+
+```python
+from app.core.config import get_settings
+
+
+def test_tests_use_my_blog_test_database():
+    assert get_settings().database_url.endswith("/my_blog_test")
+```
+
 创建 `backend/pytest.ini`：
 
 ```ini
 [pytest]
 asyncio_mode = auto
+pythonpath = .
+testpaths = tests
 ```
 
 - [ ] **步骤 3：运行测试验证失败**
@@ -193,7 +212,7 @@ cd "Z:/my_blog/backend"
 "venv/Scripts/python.exe" -m pytest tests/test_health.py -v
 ```
 
-预期：FAIL 或收集错误，提示 `ModuleNotFoundError: No module named 'app.main'`。
+预期：FAIL 或收集错误。若 `.env.test` 还没创建，会提示 `RuntimeError: Missing .../.env.test`；否则提示 `ModuleNotFoundError: No module named 'app.main'`。
 
 - [ ] **步骤 4：创建配置文件**
 
@@ -216,14 +235,14 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "My Blog API"
-    database_url: str = "postgresql+asyncpg://blog_user:change-me@127.0.0.1:5432/my_blog"
-    jwt_secret: str = "change-me-in-env"
+    database_url: str
+    jwt_secret: str
     jwt_expire_days: int = 7
     admin_username: str = "admin"
-    admin_password: str = "change-me"
+    admin_password: str
     admin_enabled: bool = True
     upload_dir: str = str(BASE_DIR / "uploads")
-    ip_hash_salt: str = "change-me-in-env"
+    ip_hash_salt: str
     cookie_secure: bool = False
     site_origin: str = "http://localhost:3000"
 
@@ -334,7 +353,7 @@ cd "Z:/my_blog/backend"
 "venv/Scripts/python.exe" -m pytest tests/test_health.py -v
 ```
 
-预期：`1 passed`。
+预期：`2 passed`（健康检查 + 测试环境防呆）。
 
 - [ ] **步骤 7：锁定依赖版本**
 
