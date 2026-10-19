@@ -222,6 +222,7 @@ cd "Z:/my_blog/backend"
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -236,15 +237,22 @@ class Settings(BaseSettings):
 
     app_name: str = "My Blog API"
     database_url: str
-    jwt_secret: str
+    jwt_secret: str = Field(min_length=32)
     jwt_expire_days: int = 7
-    admin_username: str = "admin"
-    admin_password: str
+    admin_username: str = Field(default="admin", min_length=1, max_length=50)
+    admin_password: str = Field(min_length=12)
     admin_enabled: bool = True
     upload_dir: str = str(BASE_DIR / "uploads")
     ip_hash_salt: str
     cookie_secure: bool = False
     site_origin: str = "http://localhost:3000"
+
+    @field_validator("jwt_secret", "admin_password")
+    @classmethod
+    def reject_placeholders(cls, value: str) -> str:
+        if value.startswith("replace-with"):
+            raise ValueError("Replace placeholder secrets in .env")
+        return value
 
 
 @lru_cache
@@ -326,7 +334,7 @@ SITE_ORIGIN=http://localhost:3000
 
 ```env
 DATABASE_URL=postgresql+asyncpg://blog_user:YOUR_PASSWORD@127.0.0.1:5432/my_blog_test
-JWT_SECRET=test-secret
+JWT_SECRET=test-secret-0123456789abcdef0123456789abcdef
 JWT_EXPIRE_DAYS=7
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=test-password
@@ -827,6 +835,8 @@ git commit -m "feat: add database models and initial migration"
 
 ### 任务 4：管理员种子与认证（TDD）
 
+> 实现注记：实际实现补充了并发安全的 `try_acquire` 限流、登出 Cookie 属性、Argon2 线程池校验、dummy hash 防时序侧信道、Settings 密钥强度校验，以及 429/登出/Cookie 属性/无效 token 测试；以仓库代码为准。
+
 **文件：**
 - 创建：`backend/app/core/security.py`
 - 创建：`backend/app/services/rate_limit.py`
@@ -946,6 +956,7 @@ from pwdlib import PasswordHash
 from app.core.config import get_settings
 
 password_hasher = PasswordHash.recommended()
+DUMMY_PASSWORD_HASH = password_hasher.hash("not-a-real-password")
 
 
 def hash_password(password: str) -> str:
@@ -970,7 +981,12 @@ def create_access_token(user_id: int) -> str:
 def decode_access_token(token: str) -> int | None:
     settings = get_settings()
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=["HS256"],
+            options={"require": ["exp", "sub"]},
+        )
         return int(payload["sub"])
     except (jwt.PyJWTError, KeyError, ValueError):
         return None
@@ -989,15 +1005,15 @@ class SlidingWindowLimiter:
         self.window_seconds = window_seconds
         self._events: dict[str, deque[float]] = defaultdict(deque)
 
-    def is_limited(self, key: str) -> bool:
+    def try_acquire(self, key: str) -> bool:
         now = monotonic()
         events = self._events[key]
         while events and now - events[0] > self.window_seconds:
             events.popleft()
-        return len(events) >= self.limit
-
-    def hit(self, key: str) -> None:
-        self._events[key].append(monotonic())
+        if len(events) >= self.limit:
+            return False
+        events.append(now)
+        return True
 
     def reset(self, key: str) -> None:
         self._events.pop(key, None)
@@ -1077,10 +1093,15 @@ async def get_current_user(
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.concurrency import run_in_threadpool
 
 from app.api.deps import COOKIE_NAME, get_current_user
 from app.core.config import get_settings
-from app.core.security import create_access_token, verify_password
+from app.core.security import (
+    DUMMY_PASSWORD_HASH,
+    create_access_token,
+    verify_password,
+)
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth import LoginRequest, LoginResponse, MeResponse
@@ -1101,13 +1122,16 @@ async def login(
         raise HTTPException(status_code=404)
 
     client_ip = request.client.host if request.client else "unknown"
-    if login_limiter.is_limited(client_ip):
+    if not login_limiter.try_acquire(client_ip):
         raise HTTPException(status_code=429, detail="尝试次数过多，请稍后再试")
 
     result = await db.execute(select(User).where(User.username == payload.username))
     user = result.scalar_one_or_none()
-    if user is None or not verify_password(payload.password, user.password_hash):
-        login_limiter.hit(client_ip)
+    password_hash = user.password_hash if user is not None else DUMMY_PASSWORD_HASH
+    valid = await run_in_threadpool(
+        verify_password, payload.password, password_hash
+    )
+    if user is None or not valid:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
 
     login_limiter.reset(client_ip)
@@ -1126,9 +1150,16 @@ async def login(
 
 @router.post("/logout", status_code=204)
 async def logout(response: Response) -> None:
-    if not get_settings().admin_enabled:
+    settings = get_settings()
+    if not settings.admin_enabled:
         raise HTTPException(status_code=404)
-    response.delete_cookie(COOKIE_NAME, path="/")
+    response.delete_cookie(
+        COOKIE_NAME,
+        path="/",
+        secure=settings.cookie_secure,
+        httponly=True,
+        samesite="lax",
+    )
 
 
 @router.get("/me", response_model=MeResponse)
