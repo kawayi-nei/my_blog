@@ -10,7 +10,7 @@ router = APIRouter(prefix="/posts", tags=["posts"])
 
 @router.get("", response_model=PostListResponse)
 async def list_posts(
-    page: int = Query(1, ge=1),
+    page: int = Query(1, ge=1, le=100_000),
     page_size: int = Query(10, ge=1, le=50),
     tag: str | None = None,
     language: str | None = Query(None, pattern="^(zh|en)$"),

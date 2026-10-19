@@ -1,5 +1,6 @@
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import defer
 
 from app.models.post import Post
 from app.models.tag import Tag
@@ -25,7 +26,8 @@ async def list_published_posts(
     result = await db.execute(
         select(Post)
         .where(*filters)
-        .order_by(Post.published_at.desc())
+        .options(defer(Post.content_md))
+        .order_by(Post.published_at.desc().nulls_last(), Post.id.desc())
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
