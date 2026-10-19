@@ -82,6 +82,14 @@
 - 移动端优先响应式；窄屏下导航折叠为菜单。
 - 表单有可见 label，交互元素可键盘操作，图片有 alt 文本。
 
+### 3.5 后台登录开关
+
+- 后端环境变量 `ADMIN_ENABLED`（默认 `true`）控制后台是否开放。
+- `true`：后台入口可见，登录和 `/api/admin/*` 正常工作。
+- `false`：导航和页脚隐藏后台入口；`/{locale}/admin/*` 返回 404；`/api/auth/login`、`/api/auth/logout`、`/api/admin/*` 返回 404；公开页面、评论、搜索、阅读统计不受影响。
+- 前端通过公开接口 `GET /api/site/config` 读取 `admin_enabled`，不使用构建时环境变量。
+- 开关只控制后台是否开放，不能替代权限：重新开启后仍使用原管理员账号和密码。
+
 ## 4. 页面结构
 
 ### 4.1 公开页面
@@ -112,7 +120,7 @@
 - `/tags`：标签管理
 - `/media`：图片库
 
-后台页面在服务端请求 `/api/auth/me`，未登录重定向到登录页。
+后台页面在服务端请求 `/api/auth/me`，未登录重定向到登录页。当 `ADMIN_ENABLED=false` 时，所有后台页面返回 404。
 
 ## 5. 国际化与可变内容
 
@@ -274,6 +282,8 @@
 
 Cookie 属性：`httpOnly=true`、`SameSite=Lax`、`Path=/`、生产环境 `Secure=true`、有效期 7 天。
 
+当 `ADMIN_ENABLED=false` 时，登录、登出和全部 `/api/admin/*` 接口返回 404，不暴露后台存在；`GET /api/auth/me` 返回 401。
+
 ### 7.2 公开文章
 
 | 方法 | 路径 | 说明 |
@@ -394,10 +404,19 @@ Cookie 属性：`httpOnly=true`、`SameSite=Lax`、`Path=/`、生产环境 `Secu
 
 `top_posts` 返回阅读量最高的 5 篇；`views_last_30_days` 固定返回 30 个日期，缺少数据的日期补 0。后台图表用简单 SVG/CSS 绘制，不引入图表库。
 
+### 7.8 公开站点配置
+
+| 方法 | 路径 | 说明 |
+|---|---|---|
+| GET | `/api/site/config` | 无需登录，返回 `{admin_enabled: true}` |
+
+前端用它决定是否显示后台入口；该接口只暴露开关状态，不暴露任何敏感信息。
+
 ## 8. 关键流程
 
 ### 8.1 登录
 
+0. 若 `ADMIN_ENABLED=false`，登录接口直接返回 404，前端不显示后台入口。
 1. 前端提交用户名密码到 `POST /api/auth/login`。
 2. 后端查询 `users`，用 Argon2 校验密码。
 3. 成功签发 JWT（`sub=user_id`、`exp=7 天`），写入 httpOnly Cookie。
@@ -487,6 +506,7 @@ Cookie 属性：`httpOnly=true`、`SameSite=Lax`、`Path=/`、生产环境 `Secu
 - 覆盖：
   - 健康检查
   - 登录成功/失败、未登录访问后台
+  - `ADMIN_ENABLED=false` 时后台页面、登录接口和 `/api/admin/*` 均返回 404，公开接口不受影响
   - 文章 CRUD、slug 冲突、发布/草稿过滤
   - 项目 CRUD 与本地化回退
   - 标签关联
@@ -532,7 +552,7 @@ Cookie 属性：`httpOnly=true`、`SameSite=Lax`、`Path=/`、生产环境 `Secu
 
 ### 11.4 配置与备份
 
-- 后端 `.env`：`DATABASE_URL`、`JWT_SECRET`、`JWT_EXPIRE_DAYS`、`ADMIN_USERNAME`、`ADMIN_PASSWORD`、`UPLOAD_DIR`、`IP_HASH_SALT`、`COOKIE_SECURE`、`SITE_ORIGIN`。
+- 后端 `.env`：`DATABASE_URL`、`JWT_SECRET`、`JWT_EXPIRE_DAYS`、`ADMIN_USERNAME`、`ADMIN_PASSWORD`、`ADMIN_ENABLED`、`UPLOAD_DIR`、`IP_HASH_SALT`、`COOKIE_SECURE`、`SITE_ORIGIN`。
 - 前端 `.env.local`：`API_BASE_URL`（服务端请求）、`NEXT_PUBLIC_SITE_URL`。
 - 数据库备份：`pg_dump` 每日 cron，保留 7 天。
 - 图片备份：同步 `backend/uploads/`。
@@ -578,7 +598,7 @@ my_blog/
 ## 13. 实施顺序
 
 1. **后端骨架**：配置、数据库会话、健康检查、Alembic 初始迁移（users/posts/tags/post_tags）。
-2. **认证**：管理员种子脚本、登录/登出/me、Cookie 鉴权。
+2. **认证**：管理员种子脚本、登录/登出/me、Cookie 鉴权、`ADMIN_ENABLED` 开关与 `/api/site/config`。
 3. **文章只读闭环**：公开列表/详情 API + Next 脚手架 + 深色站点壳 + 首页/文章页。
 4. **后台文章管理**：CRUD、Markdown 编辑器、图片上传。
 5. **作品集**：项目 CRUD、双语字段、列表/详情页、首页精选。
@@ -607,6 +627,7 @@ my_blog/
 - [ ] 本机 `http://localhost:3000` 可访问首页、作品集、文章、简历、关于、搜索。
 - [ ] 中英文界面切换正常，项目内容随语言切换。
 - [ ] 后台登录成功/失败提示正确，未登录访问后台会跳转登录页。
+- [ ] 将 `ADMIN_ENABLED` 改为 `false` 后，后台入口消失、后台页面和后台接口返回 404，公开页面仍可正常浏览。
 - [ ] 文章可创建、编辑、发布、撤回、删除；前台只显示已发布。
 - [ ] 项目可创建双语内容并展示。
 - [ ] 标签可管理，文章可按标签筛选。
