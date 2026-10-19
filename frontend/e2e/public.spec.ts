@@ -3,6 +3,7 @@ import {expect, test} from '@playwright/test';
 test('home page loads with hero and navigation', async ({page}) => {
   await page.goto('/zh');
   await expect(page.getByRole('heading', {level: 1})).toContainText('彭科道');
+  await expect(page.getByText('记录遥感、水利与代码。')).toBeVisible();
   await expect(
     page.getByRole('link', {name: '文章', exact: true})
   ).toBeVisible();
@@ -13,17 +14,19 @@ test('posts list and detail render seeded content', async ({page}) => {
   await page.getByRole('link', {name: '文章', exact: true}).click();
   await expect(page).toHaveURL(/\/zh\/posts$/);
   await expect(
-    page.getByRole('heading', {name: /文章/})
+    page.locator('main').getByRole('heading', {level: 1, name: /文章/})
   ).toBeVisible();
 
   await page
-    .getByRole('link', {name: '第一篇测试文章'})
+    .getByRole('link', {name: '第一篇测试文章', exact: true})
     .first()
     .click();
   await expect(page.locator('article header h1')).toHaveText(
     '第一篇测试文章'
   );
-  await expect(page.locator('pre code')).toContainText('print');
+  await expect(page.locator('pre code').first()).toContainText(
+    "print('hello')"
+  );
 });
 
 test('language switch changes UI copy', async ({page}) => {
@@ -35,4 +38,7 @@ test('language switch changes UI copy', async ({page}) => {
   await expect(
     page.getByRole('link', {name: 'Posts', exact: true})
   ).toBeVisible();
+  await expect(page.getByRole('heading', {level: 1})).toContainText(
+    'Peng Kedao'
+  );
 });
