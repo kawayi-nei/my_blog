@@ -1,5 +1,6 @@
 import {useLocale, useTranslations} from 'next-intl';
 import {Link} from '@/i18n/navigation';
+import LocaleSwitcher from '@/components/locale-switcher';
 import {site} from '@/content/site';
 
 export default function SiteHeader() {
@@ -24,13 +25,7 @@ export default function SiteHeader() {
           >
             {t('github')}
           </a>
-          <Link
-            href="/"
-            locale={locale === 'zh' ? 'en' : 'zh'}
-            className="rounded border border-border px-2 py-1 hover:text-foreground"
-          >
-            {locale === 'zh' ? 'EN' : '中文'}
-          </Link>
+          <LocaleSwitcher />
         </nav>
       </div>
     </header>
