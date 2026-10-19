@@ -1773,6 +1773,16 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const apiBaseUrl = process.env.API_BASE_URL ?? 'http://127.0.0.1:8000';
 
 const nextConfig: NextConfig = {
+  // 关闭 create-next-app 默认开启的 Cache Components，避免动态页面需要额外 Suspense 边界。
+  // 保留 Turbopack 的 Tailwind 加载规则。
+  turbopack: {
+    rules: {
+      '*.css': {
+        loaders: ['@tailwindcss/turbopack'],
+        as: '*.css'
+      }
+    }
+  },
   async rewrites() {
     return [
       {
