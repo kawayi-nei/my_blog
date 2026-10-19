@@ -1,4 +1,8 @@
-const API_BASE_URL = process.env.API_BASE_URL ?? 'http://127.0.0.1:8000';
+import 'server-only';
+
+const API_BASE_URL = (
+  process.env.API_BASE_URL ?? 'http://127.0.0.1:8000'
+).replace(/\/+$/, '');
 
 export type Tag = {
   name: string;
@@ -28,10 +32,36 @@ export type PostDetail = PostListItem & {
   updated_at: string;
 };
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly path: string,
+    readonly detail?: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 async function fetchApi<T>(path: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {cache: 'no-store'});
   if (!response.ok) {
-    throw new Error(`API ${response.status}: ${response.statusText}`);
+    let detail: string | undefined;
+    try {
+      const body = (await response.json()) as {detail?: unknown};
+      if (typeof body.detail === 'string') {
+        detail = body.detail;
+      }
+    } catch {
+      // 非 JSON 错误体，忽略解析失败
+    }
+    throw new ApiError(
+      `API ${response.status}: ${response.statusText}`,
+      response.status,
+      path,
+      detail
+    );
   }
   return response.json() as Promise<T>;
 }
@@ -40,11 +70,12 @@ export async function getPosts(params?: {
   page?: number;
   pageSize?: number;
   tag?: string;
-  language?: string;
+  language?: PostListItem['language'];
 }): Promise<PostListResponse> {
   const search = new URLSearchParams();
-  if (params?.page) search.set('page', String(params.page));
-  if (params?.pageSize) search.set('page_size', String(params.pageSize));
+  if (params?.page !== undefined) search.set('page', String(params.page));
+  if (params?.pageSize !== undefined)
+    search.set('page_size', String(params.pageSize));
   if (params?.tag) search.set('tag', params.tag);
   if (params?.language) search.set('language', params.language);
   const query = search.toString();
@@ -55,6 +86,10 @@ export async function getPost(slug: string): Promise<PostDetail> {
   return fetchApi<PostDetail>(`/api/posts/${encodeURIComponent(slug)}`);
 }
 
-export async function getSiteConfig(): Promise<{admin_enabled: boolean}> {
-  return fetchApi<{admin_enabled: boolean}>('/api/site/config');
+export type SiteConfigResponse = {
+  admin_enabled: boolean;
+};
+
+export async function getSiteConfig(): Promise<SiteConfigResponse> {
+  return fetchApi<SiteConfigResponse>('/api/site/config');
 }
