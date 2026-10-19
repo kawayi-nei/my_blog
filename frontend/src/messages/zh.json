@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "posts": "文章",
+    "github": "GitHub"
+  },
+  "footer": {
+    "copyright": "© 2026 {name}. 用 Next.js 与 FastAPI 构建。"
+  },
+  "home": {
+    "greeting": "你好，我是",
+    "tagline": "记录遥感、水利与代码。",
+    "latestPosts": "最新文章",
+    "empty": "暂无文章"
+  },
+  "posts": {
+    "title": "文章",
+    "empty": "暂无文章",
+    "back": "返回文章列表",
+    "views": "次阅读",
+    "prev": "上一页",
+    "next": "下一页"
+  }
+}

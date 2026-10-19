@@ -1,0 +1,23 @@
+{
+  "nav": {
+    "posts": "Posts",
+    "github": "GitHub"
+  },
+  "footer": {
+    "copyright": "© 2026 {name}. Built with Next.js and FastAPI."
+  },
+  "home": {
+    "greeting": "Hi, I'm",
+    "tagline": "Notes on remote sensing, water, and code.",
+    "latestPosts": "Latest posts",
+    "empty": "No posts yet"
+  },
+  "posts": {
+    "title": "Posts",
+    "empty": "No posts yet",
+    "back": "Back to posts",
+    "views": "views",
+    "prev": "Previous",
+    "next": "Next"
+  }
+}
