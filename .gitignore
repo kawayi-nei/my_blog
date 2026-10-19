@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .env
 .env.local
+.env.test
 .superpowers/
 backend/uploads/
 node_modules/
