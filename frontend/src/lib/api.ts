@@ -86,6 +86,19 @@ export async function getPost(slug: string): Promise<PostDetail> {
   return fetchApi<PostDetail>(`/api/posts/${encodeURIComponent(slug)}`);
 }
 
+export async function getPostOrNull(
+  slug: string
+): Promise<PostDetail | null> {
+  try {
+    return await getPost(slug);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export type SiteConfigResponse = {
   admin_enabled: boolean;
 };

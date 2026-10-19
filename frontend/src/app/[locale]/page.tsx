@@ -2,7 +2,7 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import PostCard from '@/components/post-card';
 import {site} from '@/content/site';
 import {Link} from '@/i18n/navigation';
-import {getPosts, type PostListItem} from '@/lib/api';
+import {getPosts} from '@/lib/api';
 
 export default async function HomePage({
   params
@@ -13,18 +13,14 @@ export default async function HomePage({
   setRequestLocale(locale);
   const t = await getTranslations('home');
 
-  const data = await getPosts({pageSize: 5}).catch(() => ({
-    items: [] as PostListItem[],
-    total: 0,
-    page: 1,
-    page_size: 5
-  }));
+  const data = await getPosts({pageSize: 5});
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-16">
       <p className="font-mono text-sm text-accent">$ whoami</p>
       <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl">
-        {t('greeting')}{' '}
+        {t('greeting')}
+        {locale === 'zh' ? '' : ' '}
         <span className="text-accent">
           {locale === 'zh' ? site.name : site.nameEn}
         </span>
@@ -57,7 +53,12 @@ export default async function HomePage({
             <p className="text-muted">{t('empty')}</p>
           ) : (
             data.items.map((post) => (
-              <PostCard key={post.slug} post={post} locale={locale} />
+              <PostCard
+                key={post.slug}
+                post={post}
+                locale={locale}
+                headingLevel={3}
+              />
             ))
           )}
         </div>

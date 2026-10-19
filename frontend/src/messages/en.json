@@ -19,5 +19,10 @@
     "views": "views",
     "prev": "Previous",
     "next": "Next"
+  },
+  "errors": {
+    "title": "Something went wrong",
+    "description": "The page failed to load. Please try again.",
+    "retry": "Try again"
   }
 }

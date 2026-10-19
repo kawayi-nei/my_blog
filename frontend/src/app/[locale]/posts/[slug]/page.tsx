@@ -3,7 +3,7 @@ import {getTranslations, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import {Markdown} from '@/components/markdown';
 import {Link} from '@/i18n/navigation';
-import {getPost} from '@/lib/api';
+import {getPostOrNull} from '@/lib/api';
 
 export async function generateMetadata({
   params
@@ -11,7 +11,7 @@ export async function generateMetadata({
   params: Promise<{locale: string; slug: string}>;
 }): Promise<Metadata> {
   const {slug} = await params;
-  const post = await getPost(slug).catch(() => null);
+  const post = await getPostOrNull(slug);
   if (!post) return {};
   return {title: post.title, description: post.excerpt};
 }
@@ -24,7 +24,7 @@ export default async function PostDetailPage({
   const {locale, slug} = await params;
   setRequestLocale(locale);
   const t = await getTranslations('posts');
-  const post = await getPost(slug).catch(() => null);
+  const post = await getPostOrNull(slug);
   if (!post) notFound();
 
   const date = post.published_at
@@ -35,7 +35,10 @@ export default async function PostDetailPage({
     : '';
 
   return (
-    <article className="mx-auto max-w-3xl px-4 py-12">
+    <article
+      lang={post.language}
+      className="mx-auto max-w-3xl px-4 py-12"
+    >
       <Link href="/posts" className="font-mono text-xs text-muted hover:text-accent">
         &lt; {t('back')}
       </Link>
@@ -43,10 +46,15 @@ export default async function PostDetailPage({
       <header className="mt-6 border-b border-border pb-6">
         <h1 className="text-3xl font-bold sm:text-4xl">{post.title}</h1>
         <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-xs text-muted">
-          <time>{date}</time>
+          {post.published_at ? (
+            <time dateTime={post.published_at}>{date}</time>
+          ) : null}
           <span>{post.language.toUpperCase()}</span>
           <span>
-            {post.view_count} {t('views')}
+            {new Intl.NumberFormat(locale === 'zh' ? 'zh-CN' : 'en-US').format(
+              post.view_count
+            )}{' '}
+            {t('views')}
           </span>
         </div>
         <div className="mt-3 flex flex-wrap gap-2 font-mono text-xs text-accent">

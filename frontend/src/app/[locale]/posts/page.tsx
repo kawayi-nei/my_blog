@@ -1,7 +1,8 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
+import {notFound} from 'next/navigation';
 import PostCard from '@/components/post-card';
 import {Link} from '@/i18n/navigation';
-import {getPosts, type PostListItem} from '@/lib/api';
+import {getPosts} from '@/lib/api';
 
 const PAGE_SIZE = 10;
 
@@ -10,20 +11,22 @@ export default async function PostsPage({
   searchParams
 }: {
   params: Promise<{locale: string}>;
-  searchParams: Promise<{page?: string}>;
+  searchParams: Promise<{page?: string | string[]}>;
 }) {
   const {locale} = await params;
   const {page: pageParam} = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations('posts');
-  const page = Math.max(1, Number(pageParam ?? '1') || 1);
+  const rawPage = Array.isArray(pageParam) ? pageParam[0] : pageParam;
+  const parsedPage = Number(rawPage);
+  const page =
+    Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  const data = await getPosts({page, pageSize: PAGE_SIZE}).catch(() => ({
-    items: [] as PostListItem[],
-    total: 0,
-    page,
-    page_size: PAGE_SIZE
-  }));
+  const data = await getPosts({page, pageSize: PAGE_SIZE});
+  const lastPage = Math.max(1, Math.ceil(data.total / data.page_size));
+  if (page > lastPage) {
+    notFound();
+  }
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-12">
@@ -45,7 +48,7 @@ export default async function PostsPage({
             ← {t('prev')}
           </Link>
         ) : null}
-        {page * PAGE_SIZE < data.total ? (
+        {page < lastPage ? (
           <Link href={`/posts?page=${page + 1}`} className="hover:text-accent">
             {t('next')} →
           </Link>

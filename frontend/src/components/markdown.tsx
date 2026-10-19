@@ -8,6 +8,7 @@ export function Markdown({content}: {content: string}) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
+        components={{h1: 'h2'}}
       >
         {content}
       </ReactMarkdown>
