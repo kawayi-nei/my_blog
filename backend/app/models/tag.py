@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, String
+from sqlalchemy import BigInteger, Identity, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 class Tag(Base):
     __tablename__ = "tags"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
     name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     slug: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
 

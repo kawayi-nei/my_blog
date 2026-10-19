@@ -3,9 +3,12 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
+    CheckConstraint,
     Column,
     DateTime,
     ForeignKey,
+    Identity,
+    Index,
     Integer,
     String,
     Table,
@@ -41,7 +44,31 @@ post_tags = Table(
 class Post(Base):
     __tablename__ = "posts"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    __table_args__ = (
+        CheckConstraint("language IN ('zh','en')", name="ck_posts_language"),
+        CheckConstraint("status IN ('draft','published')", name="ck_posts_status"),
+        Index("ix_posts_status_published_at", "status", "published_at"),
+        Index(
+            "ix_posts_title_trgm",
+            "title",
+            postgresql_using="gin",
+            postgresql_ops={"title": "gin_trgm_ops"},
+        ),
+        Index(
+            "ix_posts_excerpt_trgm",
+            "excerpt",
+            postgresql_using="gin",
+            postgresql_ops={"excerpt": "gin_trgm_ops"},
+        ),
+        Index(
+            "ix_posts_content_trgm",
+            "content_md",
+            postgresql_using="gin",
+            postgresql_ops={"content_md": "gin_trgm_ops"},
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
     slug: Mapped[str] = mapped_column(String(200), unique=True, nullable=False)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     excerpt: Mapped[str] = mapped_column(
