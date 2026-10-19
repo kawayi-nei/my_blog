@@ -1,5 +1,11 @@
+import asyncio
+import os
+import subprocess
+import sys
 from pathlib import Path
 
+import asyncpg
+import pytest
 import pytest_asyncio
 from dotenv import load_dotenv
 
@@ -31,6 +37,74 @@ engine = create_async_engine(settings.database_url, poolclass=NullPool)
 TestingSessionLocal = async_sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False
 )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def run_migration_smoke():
+    backend_dir = Path(__file__).resolve().parents[1]
+    url = settings.database_url.replace("postgresql+asyncpg://", "postgresql://")
+
+    async def drop_all():
+        conn = await asyncpg.connect(url)
+        await conn.execute(
+            "DROP TABLE IF EXISTS post_tags, posts, tags, users, alembic_version CASCADE"
+        )
+        await conn.close()
+
+    async def inspect():
+        conn = await asyncpg.connect(url)
+        tables = {
+            row["tablename"]
+            for row in await conn.fetch(
+                "select tablename from pg_tables where schemaname='public'"
+            )
+        }
+        constraints = {
+            row["conname"]
+            for row in await conn.fetch(
+                """
+                select conname
+                from pg_constraint
+                where conrelid = 'posts'::regclass and contype = 'c'
+                """
+            )
+        }
+        indexes = {
+            row["indexname"]
+            for row in await conn.fetch(
+                """
+                select indexname
+                from pg_indexes
+                where schemaname='public' and tablename='posts'
+                """
+            )
+        }
+        await conn.close()
+        return tables, constraints, indexes
+
+    asyncio.run(drop_all())
+    env = os.environ.copy()
+    env["DATABASE_URL"] = settings.database_url
+    subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        cwd=backend_dir,
+        env=env,
+        check=True,
+    )
+    tables, constraints, indexes = asyncio.run(inspect())
+    assert {"users", "posts", "tags", "post_tags", "alembic_version"} <= tables
+    assert {
+        "ck_posts_language",
+        "ck_posts_status",
+        "ck_posts_slug_format",
+    } <= constraints
+    assert {
+        "ix_posts_status_published_at",
+        "ix_posts_title_trgm",
+        "ix_posts_excerpt_trgm",
+        "ix_posts_content_trgm",
+    } <= indexes
+    asyncio.run(drop_all())
 
 
 @pytest_asyncio.fixture(autouse=True)

@@ -1,5 +1,5 @@
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
@@ -68,7 +68,7 @@ async def test_delete_post_cascades_post_tags(db_session):
     await db_session.commit()
     post_id = post.id
 
-    await db_session.delete(post)
+    await db_session.execute(delete(Post).where(Post.id == post_id))
     await db_session.commit()
 
     count = await db_session.scalar(
