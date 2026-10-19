@@ -3,7 +3,9 @@ import path from 'node:path';
 
 const backendDir = path.resolve(process.cwd(), '../backend');
 const python =
-  process.platform === 'win32' ? 'venv/Scripts/python.exe' : 'venv/bin/python';
+  process.platform === 'win32'
+    ? path.join('venv', 'Scripts', 'python.exe')
+    : path.join('venv', 'bin', 'python');
 
 export default defineConfig({
   testDir: './e2e',
@@ -21,7 +23,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `${python} -m uvicorn app.main:app --host 127.0.0.1 --port 8000`,
+      command: `"${path.join(backendDir, python)}" -m uvicorn app.main:app --host 127.0.0.1 --port 8000`,
       cwd: backendDir,
       url: 'http://127.0.0.1:8000/api/health',
       reuseExistingServer: true,
