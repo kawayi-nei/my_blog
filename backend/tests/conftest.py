@@ -131,3 +131,18 @@ async def client(db_session):
     async with AsyncClient(transport=transport, base_url="http://test") as c:
         yield c
     app.dependency_overrides.pop(get_db, None)
+
+
+@pytest_asyncio.fixture
+async def admin_user(db_session):
+    from app.core.security import hash_password
+    from app.models.user import User
+
+    user = User(
+        username=settings.admin_username,
+        password_hash=hash_password(settings.admin_password),
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
