@@ -47,6 +47,7 @@ class Post(Base):
     __table_args__ = (
         CheckConstraint("language IN ('zh','en')", name="ck_posts_language"),
         CheckConstraint("status IN ('draft','published')", name="ck_posts_status"),
+        CheckConstraint("slug ~ '^[a-z0-9-]+$'", name="ck_posts_slug_format"),
         Index("ix_posts_status_published_at", "status", "published_at"),
         Index(
             "ix_posts_title_trgm",

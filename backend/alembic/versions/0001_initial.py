@@ -15,6 +15,7 @@ depends_on = None
 
 
 def upgrade() -> None:
+    op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
     op.create_table(
         "users",
         sa.Column("id", sa.BigInteger(), sa.Identity(), primary_key=True),
@@ -60,6 +61,7 @@ def upgrade() -> None:
         sa.CheckConstraint(
             "status IN ('draft','published')", name="ck_posts_status"
         ),
+        sa.CheckConstraint("slug ~ '^[a-z0-9-]+$'", name="ck_posts_slug_format"),
     )
     op.create_table(
         "tags",
