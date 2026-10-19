@@ -1,1 +1,9 @@
-venv
+venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+.superpowers/
+backend/uploads/
+node_modules/
+.next/
