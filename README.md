@@ -22,7 +22,9 @@
 my_blog/
 ├── backend/
 │   ├── app/
-│   │   ├── api/            # 公开接口（auth、site、posts、tags；admin/ 暂为空壳）
+│   │   ├── api/
+│   │   │   ├── public/     # auth、site、posts、tags
+│   │   │   └── admin/      # 当前为空，后续后台接口
 │   │   ├── core/           # 配置、安全
 │   │   ├── db/             # 引擎、会话、Base
 │   │   ├── models/         # SQLAlchemy 模型
@@ -45,7 +47,8 @@ my_blog/
 │   │   ├── content/        # 目前只有 site.ts
 │   │   ├── i18n/           # next-intl 配置
 │   │   ├── lib/            # API 封装（server-only）
-│   │   └── messages/       # zh.json、en.json
+│   │   ├── messages/       # zh.json、en.json
+│   │   └── proxy.ts
 │   ├── e2e/                # Playwright 测试与全局初始化
 │   ├── next.config.ts
 │   ├── playwright.config.ts
@@ -63,7 +66,13 @@ my_blog/
 - PostgreSQL 17
 - Playwright Chromium：首次运行 E2E 前安装，必须在 `frontend` 下执行 `npm install` 之后安装（见[前端](#前端)）
 
-本文主要针对 Windows 本机开发。除特别标注为 PowerShell 的命令外，代码块以 bash 语法展示（Git Bash）；在 PowerShell 中请把 `cp` 换成 `Copy-Item`。除标注“可在任意目录执行”的命令外，**每个代码块都假定从仓库根目录开始**，执行完一个代码块后请回到仓库根目录，再执行下一个。
+本文主要针对 Windows 本机开发。除特别标注为 PowerShell 的命令外，代码块以 bash 语法展示，默认在 **Git Bash** 中执行。PowerShell 用户请直接使用 Git Bash；若必须在 PowerShell 中执行，请使用调用运算符，例如：
+
+```powershell
+& ".\venv\Scripts\python.exe" -m pytest -v
+```
+
+同时 `cp` 需换成 `Copy-Item`。带引号的可执行文件路径（如 `"venv/Scripts/python.exe"`）在 Windows PowerShell 5.1 中会解析失败，因此不要假设所有命令都能在 PowerShell 中直接粘贴。除标注“可在任意目录执行”的命令外，**每个代码块都假定从仓库根目录开始**，执行完一个代码块后请回到仓库根目录（长驻服务命令除外），再执行下一个。
 
 ## PostgreSQL
 
@@ -80,7 +89,7 @@ Start-Service postgresql-x64-17
 
 ### 创建数据库与扩展
 
-需要开发库 `my_blog` 与测试库 `my_blog_test`，两者都要启用 `pg_trgm` 扩展。以下命令可在任意目录执行，使用 `postgres` 超级用户（创建扩展需要超级用户权限），`psql` 会提示输入 postgres 用户的密码：
+需要开发库 `my_blog` 与测试库 `my_blog_test`，两者都要启用 `pg_trgm` 扩展。以下命令可在任意目录执行，使用 `postgres` 超级用户。这里用 postgres 预创建以兼容不同权限；迁移中也会 `CREATE EXTENSION IF NOT EXISTS pg_trgm`，PostgreSQL 13+ 中库所有者通常也能创建。`psql` 会提示输入 postgres 用户的密码：
 
 ```powershell
 # 创建应用账号（若已存在可跳过）
@@ -95,7 +104,13 @@ psql -U postgres -h 127.0.0.1 -d my_blog -c "CREATE EXTENSION IF NOT EXISTS pg_t
 psql -U postgres -h 127.0.0.1 -d my_blog_test -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
 ```
 
-如果 `psql` 不在 `PATH` 中，可使用 PostgreSQL 安装目录下的 `bin/psql.exe`。
+如果 `psql` 不在 `PATH` 中，可使用 PostgreSQL 安装目录下的 `bin/psql.exe`。PowerShell 中带空格的路径需要用调用运算符，例如：
+
+```powershell
+& "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -h 127.0.0.1 -d postgres
+```
+
+如果本机安装路径不同，请相应调整。
 
 ### 故障排查
 
@@ -152,6 +167,8 @@ venv/Scripts/python.exe -m uvicorn app.main:app --reload --port 8000
 
 `create_admin` 会创建管理员，若用户已存在则更新其密码；`seed_demo` 会写入演示文章。
 
+`uvicorn ... --reload` 会占用当前终端，不会返回；请保持该终端运行，并在新终端执行后续步骤。
+
 健康检查：<http://127.0.0.1:8000/api/health>，应返回 `{"status":"ok"}`。
 
 ## 前端
@@ -167,6 +184,8 @@ npm run dev
 ```
 
 顺序很重要：先 `npm install`（安装 `@playwright/test`），再执行 `npx playwright install chromium` 安装浏览器。
+
+`npm run dev` 同样会占用当前终端，不会返回；请保持该终端运行，并在新终端执行后续步骤。
 
 打开 <http://localhost:3000/zh>。
 
@@ -190,7 +209,7 @@ cd backend
 "venv/Scripts/python.exe" -m pytest -v
 ```
 
-注意：pytest 会删除并重建 `my_blog_test` 中的所有表；请确保 `.env.test` 指向测试库，不要把测试指向开发库。
+注意：pytest 会删除并重建 `my_blog_test` 中的所有表；请确保 `.env.test` 指向测试库，不要把测试指向开发库。测试会话结束时会再次删除表，测试库会保持空结构，下次运行重新迁移。
 
 ### 前端 E2E
 
@@ -201,7 +220,7 @@ cd frontend
 npm run test:e2e
 ```
 
-E2E 读取 `backend/.env`（开发库 `my_blog`），全局初始化会执行 `alembic upgrade head` 并运行 `seed_demo` 写入演示文章。
+E2E 读取 `backend/.env`（开发库 `my_blog`），全局初始化会执行 `alembic upgrade head` 并运行 `seed_demo` 写入演示文章。Playwright 会自动启动或复用 3000/8000 端口上的服务；`seed_demo` 是 upsert，会覆盖 `first-post` 的演示内容并刷新发布时间。
 
 ### 生产构建
 
