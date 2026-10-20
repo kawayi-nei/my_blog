@@ -2,7 +2,7 @@
 
 个人站点：作品集 + 技术写作。前端使用 Next.js，后端使用 FastAPI，数据存储使用 PostgreSQL。
 
-当前阶段已完成基础闭环：健康检查、管理员认证、公开文章 API、数据库迁移、深色双语站点壳、首页/文章列表/文章详情，以及 Playwright 公共浏览测试。后台 CRUD、后台页面与导航入口、项目、评论、统计与图片上传尚未实现（见文末文档）。
+计划 2 已完成后台登录、文章 CRUD、Markdown 编辑器、图片上传与媒体库；剩余作品集、搜索、评论、阅读统计、SEO 与部署（见文末文档）。
 
 ## 技术栈
 
@@ -24,17 +24,17 @@ my_blog/
 │   ├── app/
 │   │   ├── api/
 │   │   │   ├── public/     # auth、site、posts、tags
-│   │   │   └── admin/      # 当前为空，后续后台接口
+│   │   │   └── admin/      # 后台文章、标签、上传、媒体库
 │   │   ├── core/           # 配置、安全
 │   │   ├── db/             # 引擎、会话、Base
-│   │   ├── models/         # SQLAlchemy 模型
+│   │   ├── models/         # SQLAlchemy 模型（含 media.py）
 │   │   ├── schemas/        # Pydantic 模型
 │   │   ├── scripts/        # create_admin、seed_demo
 │   │   ├── services/       # 业务逻辑（含限流）
 │   │   └── main.py
 │   ├── alembic/            # 数据库迁移
 │   ├── tests/              # pytest 测试
-│   ├── uploads/            # 后续上传功能会创建（当前不存在，已 gitignore）
+│   ├── uploads/            # 上传文件（已 gitignore）
 │   ├── alembic.ini
 │   ├── pytest.ini
 │   ├── requirements.txt
@@ -42,8 +42,8 @@ my_blog/
 │   └── .env.test.example
 ├── frontend/
 │   ├── src/
-│   │   ├── app/[locale]/   # 首页、文章列表、文章详情
-│   │   ├── components/     # 站点壳、文章卡片、Markdown 渲染
+│   │   ├── app/[locale]/   # 首页、文章、后台（admin/）
+│   │   ├── components/     # 站点壳、文章组件、后台组件（admin/）
 │   │   ├── content/        # 目前只有 site.ts
 │   │   ├── i18n/           # next-intl 配置
 │   │   ├── lib/            # API 封装（server-only）
@@ -149,7 +149,7 @@ cp .env.test.example .env.test
 - `ADMIN_PASSWORD`：不少于 12 字符。
 - `IP_HASH_SALT`：随机字符串；必须手动替换，但不会被占位符校验拦截。
 - `COOKIE_SECURE`：本机 HTTP 开发保持 `false`；生产环境（HTTPS）设为 `true`。
-- `SITE_ORIGIN`：前端来源地址，预留给后续 Origin 校验/前端来源判断（当前代码尚未使用）。
+- `SITE_ORIGIN`：前端来源地址，后台写操作的 Origin 校验会与它比对。
 
 `.env.test` 供 pytest 使用，默认指向 `my_blog_test`，同样需要把其中的 `YOUR_PASSWORD` 替换为实际数据库密码。
 
@@ -209,6 +209,8 @@ cd backend
 "venv/Scripts/python.exe" -m pytest -v
 ```
 
+当前基线：**54 passed**。
+
 注意：pytest 会删除并重建 `my_blog_test` 中的所有表；请确保 `.env.test` 指向测试库，不要把测试指向开发库。测试会话结束时会再次删除表，测试库会保持空结构，下次运行重新迁移。
 
 ### 前端 E2E
@@ -220,7 +222,9 @@ cd frontend
 npm run test:e2e
 ```
 
-E2E 读取 `backend/.env`（开发库 `my_blog`），全局初始化会执行 `alembic upgrade head` 并运行 `seed_demo` 写入演示文章。Playwright 会自动启动或复用 3000/8000 端口上的服务；`seed_demo` 是 upsert，会覆盖 `first-post` 的演示内容并刷新发布时间。
+当前基线：**5 passed**（4 条公开浏览 + 1 条后台主流程）。
+
+E2E 读取 `backend/.env`（开发库 `my_blog`），全局初始化会执行 `alembic upgrade head`、运行 `seed_demo` 写入演示文章，并**重置管理员密码**。Playwright 会自动启动或复用 3000/8000 端口上的服务；`seed_demo` 是 upsert，会覆盖 `first-post` 的演示内容并刷新发布时间。
 
 ### 生产构建
 
@@ -242,16 +246,24 @@ ADMIN_ENABLED=true
 - `true`：`/api/auth/login`、`/api/auth/logout`、`/api/auth/me`、`/api/site/config` 正常。
 - `false`：`/api/auth/login`、`/api/auth/logout` 返回 404；`/api/auth/me` 返回 401；`/api/site/config` 仍返回 200，且响应中 `admin_enabled: false`。
 
-修改后需重启 FastAPI。后台页面、后台导航入口和 `/api/admin/*` 属于后续阶段，当前尚未实现。该开关只控制后台是否开放，不能替代权限校验。
+修改后需重启 FastAPI。该开关只控制后台是否开放，不能替代权限校验。
+
+## 后台管理
+
+- 启动前后端，并确保 `backend/.env` 中 `ADMIN_ENABLED=true`。
+- 打开 <http://localhost:3000/zh/admin>，使用 `backend/.env` 中配置的管理员账号登录。
+- 文章支持草稿/发布、Markdown 实时预览、正文图片上传。
+- 媒体库支持上传、复制链接、删除。
+- 所有 `/api/admin/*` 写操作都会校验 `Origin`；`SITE_ORIGIN` 必须与浏览器地址栏的来源（scheme + host + port）一致，否则请求会被拒绝。
 
 ## 环境注意事项
 
 - 只有 `JWT_SECRET` 和 `ADMIN_PASSWORD` 会拒绝以 `replace-with` 开头的占位符（长度下限分别为 32 和 12 字符）。`IP_HASH_SALT` 必须手动替换为随机值，但不会被校验。
-- 生产环境设置 `COOKIE_SECURE=true`（需要 HTTPS），并配置真实的 `SITE_ORIGIN`（预留给后续 Origin 校验/前端来源判断）。
+- 生产环境设置 `COOKIE_SECURE=true`（需要 HTTPS），并配置真实的 `SITE_ORIGIN`（后台写操作的 Origin 校验依赖它）。
 - `frontend/package.json` 中的 `@swc/core` override 针对的是 next-intl 的传递依赖：若在 Windows 上遇到 `ERR_SWC_NATIVE_CACHE`，当前通过 pin 到 1.16.0 规避；升级 next-intl 或修复 ACL 后可移除该 override。这不是所有平台都必须保留的设置。
 - `frontend/src/content/site.ts` 中的 GitHub 与 email 仍是占位值，上线前请替换为真实信息。
 - 限流为进程内实现。生产环境建议使用单个 uvicorn worker，并由 nginx `limit_req` 兜底。
-- 本阶段未实现后台 CRUD、后台页面与导航入口、项目、评论、统计、图片上传等能力；`frontend/src/lib/api.ts` 中的 `getSiteConfig` 尚未被页面使用；范围与后续计划见下方文档。
+- 后台已实现登录、受保护布局、文章 CRUD、Markdown 编辑器、图片上传与媒体库。E2E 会重置管理员密码并写入开发库 `my_blog`；不要用该库保存重要数据。上传限制为单文件 5 MB，图片单边不超过 12000 像素且总像素不超过 4000 万；`backend/uploads/` 已 gitignore。
 
 ## 相关文档
 

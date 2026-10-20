@@ -5,12 +5,12 @@
 
 ## 1. 一句话现状
 
-个人博客的**基础闭环（M1–M3）已完成并合并到 `master`**：
+个人博客的**基础闭环（M1–M3）已在 `master`**；**计划 2（后台管理）在 `feature/admin-posts` 分支完成，待合并 `master`**：
 
-- 当前分支：`master`
-- HEAD：`0a2ee4f fix: add localized not-found page`
-- 工作树：干净
-- 验证：后端 pytest **27 passed**；前端 Playwright **4 passed**；`npm run build` 成功
+- 当前分支：`feature/admin-posts`（未切换、未合并）
+- HEAD：`749dc74 fix: fail fast when e2e env is missing`
+- 工作树：干净（任务 13 已提交 `.gitignore` 与文档）
+- 验证：后端 pytest **54 passed**；前端 Playwright **5 passed**；`npm run build` 成功
 - 功能分支 `feature/foundation` 已合并并删除
 
 ## 2. 项目位置与关键文档
@@ -19,6 +19,8 @@
 - 使用说明：`Z:\my_blog\README.md`
 - 设计规格：`Z:\my_blog\docs\superpowers\specs\2026-10-19-personal-blog-design.md`
 - 基础闭环实施计划：`Z:\my_blog\docs\superpowers\plans\2026-10-19-personal-blog-foundation.md`
+- 后台管理设计文档：`Z:\my_blog\docs\superpowers\specs\2026-10-20-admin-posts-design.md`
+- 后台管理实施计划：`Z:\my_blog\docs\superpowers\plans\2026-10-20-admin-posts.md`
 - 本交接文档：`Z:\my_blog\HANDOFF.md`
 - 自动记忆：`C:\Users\Administrator\.claude\projects\Z--claude-code\memory\project_my-blog.md`
 
@@ -57,7 +59,7 @@
 - 站点可变内容：`frontend/src/content/site.ts`（GitHub/email 仍是占位值）
 - 深色终端风格：`frontend/src/app/globals.css`，固定深色，不做明暗切换。
 
-## 5. 已完成内容（M1–M3）
+## 5. 已完成内容（M1–M3 + 计划 2）
 
 ### 后端
 
@@ -79,6 +81,13 @@
   - `GET /api/site/config`
   - `POST /api/auth/login`、`POST /api/auth/logout`、`GET /api/auth/me`
 - 演示数据：`python -m app.scripts.seed_demo`（upsert `first-post`）
+- 后台 API（计划 2）：
+  - `GET/POST/PATCH/DELETE /api/admin/posts`（草稿/发布、分页、标签）
+  - 标签最小集：文章保存时按名称创建/关联
+  - `POST /api/admin/uploads`：图片上传，5 MB 上限，单边 ≤ 12000 像素、总像素 ≤ 4000 万
+  - `GET/DELETE /api/admin/media`：媒体库列表与删除
+  - 所有写操作校验 `Origin` 与 `SITE_ORIGIN`
+  - 迁移 `0002_media`：`media` 表
 
 ### 前端
 
@@ -91,33 +100,31 @@
 - Markdown：`react-markdown` + `remark-gfm` + `rehype-highlight`，不渲染原始 HTML
 - 错误处理：`error.tsx`、本地化 `not-found.tsx`
 - API 客户端：`ApiError`、`getPostOrNull`（只有 404 才返回 null）
+- 后台（计划 2）：
+  - 登录页与受保护布局（未登录跳转登录页）
+  - 文章列表、新建/编辑表单、草稿/发布
+  - Markdown 编辑器（左编辑右实时预览、正文图片上传）
+  - 媒体库（上传、复制链接、删除）
+  - 公开页头后台入口（依据 `/api/site/config`）
 
 ### 测试
 
-- 后端：pytest + httpx，27 passed
+- 后端：pytest + httpx，54 passed
   - 测试库 `my_blog_test`，每测试 drop/create
   - 迁移冒烟测试检查表/CHECK/索引
   - 有防呆：URL 必须以 `/my_blog_test` 结尾
-- 前端：Playwright 4 passed
+- 前端：Playwright 5 passed
   - 首页、文章列表+详情、语言切换、404 壳层
+  - 后台登录 → 新建 → 发布 → 删除主流程
   - Playwright 自动启动/复用 FastAPI 与 Next
-  - globalSetup 先 `alembic upgrade head` 再 `seed_demo`
+  - globalSetup 先 `alembic upgrade head`、`seed_demo`，并重置管理员密码
 
 ## 6. 尚未完成（后续计划）
-
-### 计划 2：后台管理
-
-- 管理员登录页面和后台布局
-- 文章 CRUD、草稿/发布、Markdown 编辑器（左编辑右预览）
-- 图片上传、媒体库
-- 后台入口根据 `/api/site/config` 显示/隐藏
-- 后台写操作的 Origin 校验
-- 目前 `/api/admin/*` 和后台页面都还不存在
 
 ### 计划 3：作品集与互动
 
 - 项目表、双语项目 CRUD、项目列表/详情、首页精选
-- 标签管理、标签筛选、站内搜索（`pg_trgm`）
+- 标签管理页、标签筛选、站内搜索（`pg_trgm`）
 - 评论提交、蜜罐、频率限制、后台审核
 - 阅读统计：`post_views` 去重、`view_count`、后台统计
 - 简历页、关于页（内容放 `src/content/resume.zh.md` / `about.zh.md` 等）
@@ -136,14 +143,15 @@
 ## 7. 已知问题与注意事项
 
 - `frontend/src/content/site.ts` 的 GitHub/email 是占位值，上线前必须替换。
-- E2E 使用**开发库** `my_blog`，并 upsert `first-post`；不要拿它跑重要数据。
+- E2E 使用**开发库** `my_blog`，并 upsert `first-post`；globalSetup 会读取 `backend/.env` 并**重置管理员密码**。不要拿它跑重要数据。
+- Playwright 使用 `workers: 1`，规避 Next dev 冷编译超时。
+- 上传限制：单文件 5 MB；图片单边 ≤ 12000 像素、总像素 ≤ 4000 万。`backend/uploads/` 已 gitignore。
 - pytest 会删除/重建 `my_blog_test` 的表，测试结束后测试库保持空结构。
 - PostgreSQL 服务可能 Stopped，先运行 `Start-Service postgresql-x64-17`。
 - `@swc/core` 在 `frontend/package.json` 里被 pin 到 `1.16.0`，是本机 Windows ACL 导致 `ERR_SWC_NATIVE_CACHE` 的 workaround；升级 next-intl 或修复 ACL 后可移除。
 - `API_BASE_URL` 被 `next.config.ts` 在 **build 时**读取并固化；`src/lib/api.ts` 在服务端运行时也读取它。
 - 限流是进程内实现，生产单 uvicorn worker，nginx `limit_req` 作为兜底。
 - 还没有 `deploy/` 目录。
-- 还没有后台 UI，`getSiteConfig()` 暂时未被页面使用。
 
 ## 8. 常用命令
 
@@ -170,7 +178,7 @@ cd "Z:/my_blog/frontend"
 npm run dev
 ```
 
-打开 `http://localhost:3000/zh`。
+打开 `http://localhost:3000/zh`；后台入口为 `http://localhost:3000/zh/admin`。
 
 ### 测试
 
