@@ -3,9 +3,14 @@ import {Link} from '@/i18n/navigation';
 import LocaleSwitcher from '@/components/locale-switcher';
 import {site} from '@/content/site';
 
-export default function SiteHeader() {
+export default function SiteHeader({
+  adminEnabled = false
+}: {
+  adminEnabled?: boolean;
+}) {
   const t = useTranslations('nav');
   const locale = useLocale();
+  void adminEnabled;
 
   return (
     <header className="border-b border-border/80 bg-background/90 backdrop-blur">

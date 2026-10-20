@@ -5,8 +5,6 @@ import {getMessages, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
 import 'highlight.js/styles/github-dark.css';
 import '../globals.css';
-import SiteFooter from '@/components/site-footer';
-import SiteHeader from '@/components/site-header';
 import {site} from '@/content/site';
 import {routing} from '@/i18n/routing';
 
@@ -45,11 +43,7 @@ export default async function LocaleLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NextIntlClientProvider messages={messages}>
-          <div className="flex min-h-screen flex-col">
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </div>
+          {children}
         </NextIntlClientProvider>
       </body>
     </html>
