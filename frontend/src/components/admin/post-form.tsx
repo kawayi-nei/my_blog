@@ -47,6 +47,7 @@ export default function PostForm({
   const [newTagName, setNewTagName] = useState('');
   const [newTagSlug, setNewTagSlug] = useState('');
   const [tagError, setTagError] = useState<string | null>(null);
+  const [tagPending, setTagPending] = useState(false);
 
   const {
     register,
@@ -90,62 +91,82 @@ export default function PostForm({
     setSubmitError(null);
     setSaved(false);
     const isEdit = Boolean(post);
-    const response = await fetch(
-      isEdit ? `/api/admin/posts/${post!.id}` : '/api/admin/posts',
-      {
-        method: isEdit ? 'PATCH' : 'POST',
-        headers: {'content-type': 'application/json'},
-        body: JSON.stringify(values)
+
+    try {
+      const response = await fetch(
+        isEdit ? `/api/admin/posts/${post!.id}` : '/api/admin/posts',
+        {
+          method: isEdit ? 'PATCH' : 'POST',
+          headers: {'content-type': 'application/json'},
+          body: JSON.stringify(values)
+        }
+      );
+
+      if (response.status === 401) {
+        router.replace(`/${locale}/admin/login`);
+        return;
       }
-    );
+      if (response.status === 409) {
+        setSubmitError(t('slugConflict'));
+        return;
+      }
+      if (response.status === 422) {
+        setSubmitError(t('invalid'));
+        return;
+      }
+      if (!response.ok) {
+        setSubmitError(t('saveFailed'));
+        return;
+      }
 
-    if (response.status === 401) {
-      router.replace(`/${locale}/admin/login`);
-      return;
-    }
-    if (response.status === 409) {
-      setSubmitError(t('slugConflict'));
-      return;
-    }
-    if (response.status === 422) {
-      setSubmitError(t('invalid'));
-      return;
-    }
-    if (!response.ok) {
-      setSubmitError(t('saveFailed'));
-      return;
-    }
-
-    const data = (await response.json()) as AdminPostDetail;
-    if (!isEdit) {
-      router.replace(`/${locale}/admin/posts/${data.id}/edit`);
+      const data = (await response.json()) as AdminPostDetail;
+      if (!isEdit) {
+        router.replace(`/${locale}/admin/posts/${data.id}/edit`);
+        router.refresh();
+        return;
+      }
+      setSaved(true);
       router.refresh();
-      return;
+    } catch {
+      setSubmitError(t('saveFailed'));
     }
-    setSaved(true);
-    router.refresh();
   }
 
   async function createTag() {
+    const name = newTagName.trim();
+    const slug = newTagSlug.trim();
+    if (!name || !slug) return;
+
     setTagError(null);
-    const response = await fetch('/api/admin/tags', {
-      method: 'POST',
-      headers: {'content-type': 'application/json'},
-      body: JSON.stringify({name: newTagName, slug: newTagSlug})
-    });
+    setTagPending(true);
+    try {
+      const response = await fetch('/api/admin/tags', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify({name, slug})
+      });
 
-    if (!response.ok) {
-      setTagError(
-        response.status === 409 ? t('tagConflict') : t('tagCreateFailed')
-      );
-      return;
+      if (response.status === 401) {
+        router.replace(`/${locale}/admin/login`);
+        return;
+      }
+      if (!response.ok) {
+        setTagError(
+          response.status === 409 ? t('tagConflict') : t('tagCreateFailed')
+        );
+        return;
+      }
+
+      const tag = (await response.json()) as AdminTag;
+      setTags((current) => [...current, tag]);
+      setValue('tag_ids', [...getValues('tag_ids'), tag.id]);
+      setNewTagName('');
+      setNewTagSlug('');
+    } catch {
+      setTagError(t('tagCreateFailed'));
+    } finally {
+      setTagPending(false);
     }
-
-    const tag = (await response.json()) as AdminTag;
-    setTags((current) => [...current, tag]);
-    setValue('tag_ids', [...getValues('tag_ids'), tag.id]);
-    setNewTagName('');
-    setNewTagSlug('');
   }
 
   return (
@@ -273,13 +294,15 @@ export default function PostForm({
           <button
             type="button"
             onClick={createTag}
-            disabled={!newTagName || !newTagSlug}
+            disabled={tagPending || !newTagName || !newTagSlug}
             className="rounded border border-border px-3 py-1 hover:border-accent disabled:opacity-60"
           >
             {t('createTag')}
           </button>
           {tagError ? (
-            <span className="text-red-400">{tagError}</span>
+            <span role="alert" className="text-red-400">
+              {tagError}
+            </span>
           ) : null}
         </div>
       </fieldset>
@@ -298,7 +321,9 @@ export default function PostForm({
       </div>
 
       {submitError ? (
-        <p className="font-mono text-xs text-red-400">{submitError}</p>
+        <p role="alert" className="font-mono text-xs text-red-400">
+          {submitError}
+        </p>
       ) : null}
       {saved ? (
         <p className="font-mono text-xs text-accent">{t('saved')}</p>

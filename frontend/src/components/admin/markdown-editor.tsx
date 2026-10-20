@@ -1,7 +1,7 @@
 'use client';
 
-import {useTranslations} from 'next-intl';
-import {useRef, useState} from 'react';
+import {useLocale, useTranslations} from 'next-intl';
+import {useEffect, useRef, useState} from 'react';
 import {Markdown} from '@/components/markdown';
 
 export default function MarkdownEditor({
@@ -11,20 +11,28 @@ export default function MarkdownEditor({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const locale = useLocale();
   const t = useTranslations('admin.posts.form');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef(value);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   function insert(before: string, after: string, fallback: string) {
     const textarea = textareaRef.current;
     if (!textarea) return;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const selected = value.slice(start, end) || fallback;
+    const current = valueRef.current;
+    const selected = current.slice(start, end) || fallback;
     const next =
-      value.slice(0, start) + before + selected + after + value.slice(end);
+      current.slice(0, start) + before + selected + after + current.slice(end);
+    valueRef.current = next;
     onChange(next);
     requestAnimationFrame(() => {
       textarea.focus();
@@ -45,18 +53,27 @@ export default function MarkdownEditor({
     const form = new FormData();
     form.append('file', file);
 
-    const response = await fetch('/api/admin/uploads', {
-      method: 'POST',
-      body: form
-    });
-    setUploading(false);
+    try {
+      const response = await fetch('/api/admin/uploads', {
+        method: 'POST',
+        body: form
+      });
 
-    if (!response.ok) {
+      if (response.status === 401) {
+        window.location.assign(`/${locale}/admin/login`);
+        return;
+      }
+      if (!response.ok) {
+        setError(t('uploadFailed'));
+        return;
+      }
+      const data = (await response.json()) as {url: string};
+      insert('![', `](${data.url})`, file.name);
+    } catch {
       setError(t('uploadFailed'));
-      return;
+    } finally {
+      setUploading(false);
     }
-    const data = (await response.json()) as {url: string};
-    insert('![', `](${data.url})`, file.name);
   }
 
   return (
@@ -118,7 +135,9 @@ export default function MarkdownEditor({
           className="w-full rounded border border-border bg-surface p-3 font-mono text-sm"
         />
         {error ? (
-          <p className="mt-2 font-mono text-xs text-red-400">{error}</p>
+          <p role="alert" className="mt-2 font-mono text-xs text-red-400">
+            {error}
+          </p>
         ) : null}
       </div>
 
