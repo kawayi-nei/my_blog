@@ -120,6 +120,7 @@
       "confirmDelete": "确定删除这张图片？引用它的文章会失效。",
       "deleteFailed": "删除失败，请稍后重试",
       "uploadFailed": "上传失败，请稍后重试",
+      "copyFailed": "复制失败，请手动选择链接",
       "backToPosts": "返回文章",
       "prev": "上一页",
       "next": "下一页"

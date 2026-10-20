@@ -120,6 +120,7 @@
       "confirmDelete": "Delete this image? Posts referencing it will break.",
       "deleteFailed": "Delete failed. Please try again.",
       "uploadFailed": "Upload failed. Please try again.",
+      "copyFailed": "Copy failed. Please select the link manually.",
       "backToPosts": "Back to posts",
       "prev": "Previous",
       "next": "Next"

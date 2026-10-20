@@ -10,7 +10,6 @@ export default function SiteHeader({
 }) {
   const t = useTranslations('nav');
   const locale = useLocale();
-  void adminEnabled;
 
   return (
     <header className="border-b border-border/80 bg-background/90 backdrop-blur">
@@ -22,6 +21,11 @@ export default function SiteHeader({
           <Link href="/posts" className="hover:text-foreground">
             {t('posts')}
           </Link>
+          {adminEnabled ? (
+            <Link href="/admin/posts" className="hover:text-foreground">
+              {t('admin')}
+            </Link>
+          ) : null}
           <a
             href={site.github}
             target="_blank"
