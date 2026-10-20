@@ -1,7 +1,8 @@
 {
   "nav": {
     "posts": "文章",
-    "github": "GitHub"
+    "github": "GitHub",
+    "admin": "后台"
   },
   "footer": {
     "copyright": "© 2026 {name}. 用 Next.js 与 FastAPI 构建。"
@@ -27,5 +28,100 @@
     "notFoundTitle": "页面不存在",
     "notFoundDescription": "你访问的页面可能已被移动或删除。",
     "backHome": "返回首页"
+  },
+  "admin": {
+    "nav": {
+      "posts": "文章",
+      "media": "媒体库",
+      "backToSite": "返回站点",
+      "logout": "退出登录"
+    },
+    "login": {
+      "title": "后台登录",
+      "username": "用户名",
+      "password": "密码",
+      "submit": "登录",
+      "submitting": "登录中…",
+      "invalid": "用户名或密码错误",
+      "rateLimited": "尝试次数过多，请稍后再试",
+      "failed": "登录失败，请稍后重试",
+      "required": "请填写此项"
+    },
+    "posts": {
+      "title": "文章管理",
+      "new": "新建文章",
+      "empty": "暂无文章",
+      "all": "全部",
+      "draft": "草稿",
+      "published": "已发布",
+      "search": "搜索",
+      "searchPlaceholder": "搜索标题或摘要",
+      "filter": "筛选",
+      "edit": "编辑",
+      "delete": "删除",
+      "deleteFailed": "删除失败，请稍后重试",
+      "confirmDelete": "确定删除《{title}》？此操作不可撤销。",
+      "updated": "更新时间",
+      "language": "语言",
+      "status": "状态",
+      "prev": "上一页",
+      "next": "下一页",
+      "form": {
+        "createTitle": "新建文章",
+        "editTitle": "编辑文章",
+        "title": "标题",
+        "slug": "Slug",
+        "slugHint": "仅小写字母、数字和连字符",
+        "language": "语言",
+        "status": "状态",
+        "statusDraft": "草稿",
+        "statusPublished": "已发布",
+        "excerpt": "摘要",
+        "tags": "标签",
+        "newTag": "新建标签",
+        "tagName": "标签名称",
+        "tagSlug": "标签 Slug",
+        "createTag": "创建标签",
+        "content": "正文",
+        "contentPlaceholder": "在此输入 Markdown…",
+        "preview": "预览",
+        "previewEmpty": "预览会显示在这里。",
+        "save": "保存",
+        "saving": "保存中…",
+        "cancel": "取消",
+        "back": "返回列表",
+        "saved": "已保存",
+        "slugConflict": "Slug 已被占用，请换一个",
+        "invalid": "表单内容不合法，请检查",
+        "saveFailed": "保存失败，请稍后重试",
+        "uploadFailed": "图片上传失败",
+        "uploading": "上传中…",
+        "insertImage": "插入图片",
+        "bold": "加粗",
+        "italic": "斜体",
+        "code": "行内代码",
+        "link": "链接",
+        "tagCreateFailed": "标签创建失败",
+        "tagConflict": "标签名称或 Slug 已存在",
+        "titleRequired": "请输入标题",
+        "slugRequired": "请输入合法 Slug",
+        "tooLong": "内容过长"
+      }
+    },
+    "media": {
+      "title": "媒体库",
+      "upload": "上传图片",
+      "uploading": "上传中…",
+      "empty": "暂无图片",
+      "copy": "复制链接",
+      "copied": "已复制",
+      "delete": "删除",
+      "confirmDelete": "确定删除这张图片？引用它的文章会失效。",
+      "deleteFailed": "删除失败，请稍后重试",
+      "uploadFailed": "上传失败，请稍后重试",
+      "backToPosts": "返回文章",
+      "prev": "上一页",
+      "next": "下一页"
+    }
   }
 }

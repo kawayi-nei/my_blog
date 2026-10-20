@@ -1,7 +1,8 @@
 {
   "nav": {
     "posts": "Posts",
-    "github": "GitHub"
+    "github": "GitHub",
+    "admin": "Admin"
   },
   "footer": {
     "copyright": "© 2026 {name}. Built with Next.js and FastAPI."
@@ -27,5 +28,100 @@
     "notFoundTitle": "Page not found",
     "notFoundDescription": "The page you are looking for may have been moved or deleted.",
     "backHome": "Back home"
+  },
+  "admin": {
+    "nav": {
+      "posts": "Posts",
+      "media": "Media",
+      "backToSite": "Back to site",
+      "logout": "Log out"
+    },
+    "login": {
+      "title": "Admin login",
+      "username": "Username",
+      "password": "Password",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "invalid": "Invalid username or password",
+      "rateLimited": "Too many attempts. Please try again later.",
+      "failed": "Login failed. Please try again.",
+      "required": "This field is required"
+    },
+    "posts": {
+      "title": "Posts",
+      "new": "New post",
+      "empty": "No posts yet",
+      "all": "All",
+      "draft": "Draft",
+      "published": "Published",
+      "search": "Search",
+      "searchPlaceholder": "Search title or excerpt",
+      "filter": "Filter",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteFailed": "Delete failed. Please try again.",
+      "confirmDelete": "Delete “{title}”? This cannot be undone.",
+      "updated": "Updated",
+      "language": "Language",
+      "status": "Status",
+      "prev": "Previous",
+      "next": "Next",
+      "form": {
+        "createTitle": "New post",
+        "editTitle": "Edit post",
+        "title": "Title",
+        "slug": "Slug",
+        "slugHint": "Lowercase letters, numbers and hyphens only",
+        "language": "Language",
+        "status": "Status",
+        "statusDraft": "Draft",
+        "statusPublished": "Published",
+        "excerpt": "Excerpt",
+        "tags": "Tags",
+        "newTag": "New tag",
+        "tagName": "Tag name",
+        "tagSlug": "Tag slug",
+        "createTag": "Create tag",
+        "content": "Content",
+        "contentPlaceholder": "Write Markdown here…",
+        "preview": "Preview",
+        "previewEmpty": "Preview appears here.",
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "back": "Back to list",
+        "saved": "Saved",
+        "slugConflict": "This slug is already taken",
+        "invalid": "Invalid form values",
+        "saveFailed": "Save failed. Please try again.",
+        "uploadFailed": "Image upload failed",
+        "uploading": "Uploading…",
+        "insertImage": "Insert image",
+        "bold": "Bold",
+        "italic": "Italic",
+        "code": "Inline code",
+        "link": "Link",
+        "tagCreateFailed": "Tag creation failed",
+        "tagConflict": "Tag name or slug already exists",
+        "titleRequired": "Title is required",
+        "slugRequired": "Enter a valid slug",
+        "tooLong": "Too long"
+      }
+    },
+    "media": {
+      "title": "Media",
+      "upload": "Upload image",
+      "uploading": "Uploading…",
+      "empty": "No images yet",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "delete": "Delete",
+      "confirmDelete": "Delete this image? Posts referencing it will break.",
+      "deleteFailed": "Delete failed. Please try again.",
+      "uploadFailed": "Upload failed. Please try again.",
+      "backToPosts": "Back to posts",
+      "prev": "Previous",
+      "next": "Next"
+    }
   }
 }
