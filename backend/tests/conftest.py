@@ -170,3 +170,10 @@ async def logged_in_client(client, admin_user):
 async def admin_client(logged_in_client, origin_headers):
     logged_in_client.headers.update(origin_headers)
     return logged_in_client
+
+
+@pytest.fixture
+def upload_dir(tmp_path, monkeypatch):
+    settings = get_settings()
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+    return tmp_path
