@@ -33,11 +33,16 @@ FORMAT_MAP = {
 def _inspect_image(data: bytes) -> tuple[str, str]:
     try:
         with Image.open(BytesIO(data)) as image:
-            image.verify()
-        with Image.open(BytesIO(data)) as image:
             image_format = (image.format or "").upper()
+            width, height = image.size
+        with Image.open(BytesIO(data)) as image:
+            image.verify()
+    except Image.DecompressionBombError:
+        raise ValueError("图片尺寸过大")
     except Exception:
         raise ValueError("不是有效图片")
+    if width > 12000 or height > 12000 or width * height > 40_000_000:
+        raise ValueError("图片尺寸过大")
     if image_format not in FORMAT_MAP:
         raise ValueError("不支持的图片格式")
     return FORMAT_MAP[image_format]
@@ -72,14 +77,26 @@ async def save_upload(db: AsyncSession, file: UploadFile) -> UploadResponse:
     target = Path(get_settings().upload_dir) / filename
     await run_in_threadpool(_write_file, target, data)
 
+    original_name = (file.filename or f"upload{extension}").replace("\x00", "")[:255]
+    if not original_name:
+        original_name = f"upload{extension}"
+
     media = Media(
         filename=filename,
-        original_name=file.filename or f"upload{extension}",
+        original_name=original_name,
         mime=mime,
         size_bytes=len(data),
     )
     db.add(media)
-    await db.commit()
+    try:
+        await db.commit()
+    except Exception:
+        await db.rollback()
+        try:
+            await run_in_threadpool(target.unlink, missing_ok=True)
+        except OSError:
+            pass
+        raise HTTPException(status_code=500, detail="保存图片失败")
     await db.refresh(media)
 
     return UploadResponse(
@@ -112,8 +129,11 @@ async def delete_media(db: AsyncSession, media_id: int) -> None:
     target = (base / media.filename).resolve()
     if not target.is_relative_to(base):
         raise HTTPException(status_code=400, detail="非法文件路径")
-    if target.exists():
-        await run_in_threadpool(target.unlink)
 
     await db.delete(media)
     await db.commit()
+
+    try:
+        await run_in_threadpool(target.unlink, missing_ok=True)
+    except OSError:
+        pass
