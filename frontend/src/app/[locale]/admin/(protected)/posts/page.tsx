@@ -31,8 +31,10 @@ export default async function AdminPostsPage({
 
   const rawPage = Array.isArray(sp.page) ? sp.page[0] : sp.page;
   const parsedPage = Number(rawPage);
-  const page =
-    Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const page = Math.min(
+    Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1,
+    100_000
+  );
 
   const rawStatus = Array.isArray(sp.status) ? sp.status[0] : sp.status;
   const status =
@@ -82,6 +84,7 @@ export default async function AdminPostsPage({
           <input
             name="q"
             defaultValue={q ?? ''}
+            maxLength={100}
             placeholder={t('searchPlaceholder')}
             className="rounded border border-border bg-surface px-3 py-2"
           />

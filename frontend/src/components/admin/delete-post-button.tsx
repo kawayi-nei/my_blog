@@ -1,7 +1,8 @@
 'use client';
 
-import {useTranslations} from 'next-intl';
+import {useLocale, useTranslations} from 'next-intl';
 import {useRouter} from 'next/navigation';
+import {useState} from 'react';
 
 export default function DeletePostButton({
   id,
@@ -11,27 +12,50 @@ export default function DeletePostButton({
   title: string;
 }) {
   const t = useTranslations('admin.posts');
+  const locale = useLocale();
   const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function onDelete() {
     if (!window.confirm(t('confirmDelete', {title}))) return;
-    const response = await fetch(`/api/admin/posts/${id}`, {
-      method: 'DELETE'
-    });
-    if (response.ok || response.status === 404) {
-      router.refresh();
-      return;
+    setPending(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/posts/${id}`, {
+        method: 'DELETE'
+      });
+      if (response.status === 401) {
+        window.location.assign(`/${locale}/admin/login`);
+        return;
+      }
+      if (response.ok || response.status === 404) {
+        router.refresh();
+        return;
+      }
+      setError(t('deleteFailed'));
+    } catch {
+      setError(t('deleteFailed'));
+    } finally {
+      setPending(false);
     }
-    window.alert(t('deleteFailed'));
   }
 
   return (
-    <button
-      type="button"
-      onClick={onDelete}
-      className="text-red-400 hover:underline"
-    >
-      {t('delete')}
-    </button>
+    <span>
+      <button
+        type="button"
+        onClick={onDelete}
+        disabled={pending}
+        className="text-red-400 hover:underline disabled:opacity-60"
+      >
+        {t('delete')}
+      </button>
+      {error ? (
+        <span role="alert" className="text-red-400">
+          {error}
+        </span>
+      ) : null}
+    </span>
   );
 }
