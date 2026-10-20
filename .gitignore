@@ -5,6 +5,7 @@ __pycache__/
 .env.local
 .env.test
 .superpowers/
+.claude/settings.local.json
 backend/uploads/
 node_modules/
 .next/
