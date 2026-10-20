@@ -16,4 +16,8 @@ export default function globalSetup() {
     cwd: backendDir,
     stdio: 'inherit'
   });
+  execFileSync(python, ['-m', 'app.scripts.create_admin'], {
+    cwd: backendDir,
+    stdio: 'inherit'
+  });
 }
