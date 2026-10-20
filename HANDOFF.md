@@ -8,7 +8,7 @@
 个人博客的**基础闭环（M1–M3）已在 `master`**；**计划 2（后台管理）在 `feature/admin-posts` 分支完成，待合并 `master`**：
 
 - 当前分支：`feature/admin-posts`（未切换、未合并）
-- HEAD：`749dc74 fix: fail fast when e2e env is missing`
+- HEAD：以 `git log -1 --oneline` 为准（本次文档收尾前为 `9d620cc`）
 - 工作树：干净（任务 13 已提交 `.gitignore` 与文档）
 - 验证：后端 pytest **54 passed**；前端 Playwright **5 passed**；`npm run build` 成功
 - 功能分支 `feature/foundation` 已合并并删除
@@ -65,7 +65,7 @@
 
 - FastAPI 骨架、pydantic-settings 配置、健康检查
 - SQLAlchemy 2 async + asyncpg + Alembic
-- 表：`users`、`posts`、`tags`、`post_tags`
+- 表：`users`、`posts`、`tags`、`post_tags`、`media`
 - 迁移 `0001_initial`：CHECK 约束、`pg_trgm` GIN 索引、级联删除
 - 管理员种子：`python -m app.scripts.create_admin`
 - 认证：
@@ -83,7 +83,7 @@
 - 演示数据：`python -m app.scripts.seed_demo`（upsert `first-post`）
 - 后台 API（计划 2）：
   - `GET/POST/PATCH/DELETE /api/admin/posts`（草稿/发布、分页、标签）
-  - 标签最小集：文章保存时按名称创建/关联
+  - 标签最小集：`GET/POST /api/admin/tags`，文章通过 `tag_ids` 关联已有标签
   - `POST /api/admin/uploads`：图片上传，5 MB 上限，单边 ≤ 12000 像素、总像素 ≤ 4000 万
   - `GET/DELETE /api/admin/media`：媒体库列表与删除
   - 所有写操作校验 `Origin` 与 `SITE_ORIGIN`
