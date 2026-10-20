@@ -23,6 +23,9 @@
   "errors": {
     "title": "Something went wrong",
     "description": "The page failed to load. Please try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "The page you are looking for may have been moved or deleted.",
+    "backHome": "Back home"
   }
 }

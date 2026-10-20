@@ -23,6 +23,9 @@
   "errors": {
     "title": "出了点问题",
     "description": "页面加载失败，请稍后重试。",
-    "retry": "重试"
+    "retry": "重试",
+    "notFoundTitle": "页面不存在",
+    "notFoundDescription": "你访问的页面可能已被移动或删除。",
+    "backHome": "返回首页"
   }
 }
