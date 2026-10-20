@@ -34,7 +34,8 @@
       "posts": "Posts",
       "media": "Media",
       "backToSite": "Back to site",
-      "logout": "Log out"
+      "logout": "Log out",
+      "logoutFailed": "Log out failed. Please try again."
     },
     "login": {
       "title": "Admin login",

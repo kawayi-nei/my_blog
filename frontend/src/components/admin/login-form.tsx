@@ -30,22 +30,26 @@ export default function LoginForm() {
 
   async function onSubmit(values: LoginValues) {
     setError(null);
-    const response = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {'content-type': 'application/json'},
-      body: JSON.stringify(values)
-    });
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {'content-type': 'application/json'},
+        body: JSON.stringify(values)
+      });
 
-    if (response.ok) {
-      router.replace(`/${locale}/admin/posts`);
-      router.refresh();
-      return;
-    }
-    if (response.status === 401) {
-      setError(t('invalid'));
-    } else if (response.status === 429) {
-      setError(t('rateLimited'));
-    } else {
+      if (response.ok) {
+        router.replace(`/${locale}/admin/posts`);
+        router.refresh();
+        return;
+      }
+      if (response.status === 401) {
+        setError(t('invalid'));
+      } else if (response.status === 429) {
+        setError(t('rateLimited'));
+      } else {
+        setError(t('failed'));
+      }
+    } catch {
       setError(t('failed'));
     }
   }
@@ -79,7 +83,11 @@ export default function LoginForm() {
         ) : null}
       </label>
 
-      {error ? <p className="font-mono text-xs text-red-400">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="font-mono text-xs text-red-400">
+          {error}
+        </p>
+      ) : null}
 
       <button
         type="submit"

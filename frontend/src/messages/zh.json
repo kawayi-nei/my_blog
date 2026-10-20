@@ -34,7 +34,8 @@
       "posts": "文章",
       "media": "媒体库",
       "backToSite": "返回站点",
-      "logout": "退出登录"
+      "logout": "退出登录",
+      "logoutFailed": "退出失败，请稍后重试"
     },
     "login": {
       "title": "后台登录",
