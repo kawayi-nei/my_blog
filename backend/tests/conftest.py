@@ -47,7 +47,7 @@ def run_migration_smoke():
     async def drop_all():
         conn = await asyncpg.connect(url)
         await conn.execute(
-            "DROP TABLE IF EXISTS post_tags, posts, tags, users, alembic_version CASCADE"
+            "DROP TABLE IF EXISTS media, post_tags, posts, tags, users, alembic_version CASCADE"
         )
         await conn.close()
 
@@ -92,7 +92,7 @@ def run_migration_smoke():
         check=True,
     )
     tables, constraints, indexes = asyncio.run(inspect())
-    assert {"users", "posts", "tags", "post_tags", "alembic_version"} <= tables
+    assert {"users", "posts", "tags", "post_tags", "media", "alembic_version"} <= tables
     assert {
         "ck_posts_language",
         "ck_posts_status",
