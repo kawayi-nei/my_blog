@@ -4,8 +4,12 @@ import path from 'node:path';
 
 function loadAdminCredentials() {
   const envPath = path.resolve(__dirname, '../backend/.env');
-  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
   const values: Record<string, string> = {};
+  if (!fs.existsSync(envPath)) {
+    console.warn('backend/.env not found; admin e2e will be skipped');
+    return values;
+  }
+  const lines = fs.readFileSync(envPath, 'utf8').split(/\r?\n/);
   for (const line of lines) {
     const match = /^([A-Z0-9_]+)=(.*)$/.exec(line.trim());
     if (!match) continue;

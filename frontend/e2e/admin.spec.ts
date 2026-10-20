@@ -4,6 +4,8 @@ const username = process.env.E2E_ADMIN_USERNAME ?? 'admin';
 const password = process.env.E2E_ADMIN_PASSWORD ?? '';
 
 test('admin can log in, create, publish and delete a post', async ({page}) => {
+  test.skip(!username || !password, 'E2E admin credentials not configured');
+
   const stamp = Date.now();
   const title = `E2E 管理员文章 ${stamp}`;
   const slug = `e2e-admin-${stamp}`;
@@ -31,6 +33,10 @@ test('admin can log in, create, publish and delete a post', async ({page}) => {
   const match = page.url().match(/\/admin\/posts\/(\d+)\/edit/);
   expect(match).not.toBeNull();
   const postId = match![1];
+
+  await page.goto('/zh/admin/posts');
+  await expect(page.getByTestId(`admin-post-${postId}`)).toBeVisible();
+  await page.goto(`/zh/admin/posts/${postId}/edit`);
 
   await page.getByLabel('状态').selectOption('published');
   await page.getByRole('button', {name: '保存'}).click();
