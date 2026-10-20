@@ -146,3 +146,27 @@ async def admin_user(db_session):
     await db_session.commit()
     await db_session.refresh(user)
     return user
+
+
+@pytest.fixture
+def origin_headers():
+    return {"origin": get_settings().site_origin}
+
+
+@pytest_asyncio.fixture
+async def logged_in_client(client, admin_user):
+    response = await client.post(
+        "/api/auth/login",
+        json={
+            "username": get_settings().admin_username,
+            "password": get_settings().admin_password,
+        },
+    )
+    assert response.status_code == 200
+    return client
+
+
+@pytest_asyncio.fixture
+async def admin_client(logged_in_client, origin_headers):
+    logged_in_client.headers.update(origin_headers)
+    return logged_in_client

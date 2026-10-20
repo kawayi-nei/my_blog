@@ -7,13 +7,10 @@ from app.db.session import get_db
 from app.models.user import User
 
 COOKIE_NAME = "access_token"
+UNSAFE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 
 
-async def get_current_user(
-    request: Request, db: AsyncSession = Depends(get_db)
-) -> User:
-    if not get_settings().admin_enabled:
-        raise HTTPException(status_code=401, detail="未登录")
+async def _get_user_or_401(request: Request, db: AsyncSession) -> User:
     token = request.cookies.get(COOKIE_NAME)
     if not token:
         raise HTTPException(status_code=401, detail="未登录")
@@ -24,3 +21,28 @@ async def get_current_user(
     if user is None:
         raise HTTPException(status_code=401, detail="用户不存在")
     return user
+
+
+async def get_current_user(
+    request: Request, db: AsyncSession = Depends(get_db)
+) -> User:
+    if not get_settings().admin_enabled:
+        raise HTTPException(status_code=401, detail="未登录")
+    return await _get_user_or_401(request, db)
+
+
+async def require_admin(
+    request: Request, db: AsyncSession = Depends(get_db)
+) -> User:
+    if not get_settings().admin_enabled:
+        raise HTTPException(status_code=404)
+    return await _get_user_or_401(request, db)
+
+
+async def require_same_origin(request: Request) -> None:
+    if request.method not in UNSAFE_METHODS:
+        return
+    origin = request.headers.get("origin")
+    expected = get_settings().site_origin.rstrip("/")
+    if not origin or origin.rstrip("/") != expected:
+        raise HTTPException(status_code=403, detail="来源校验失败")
