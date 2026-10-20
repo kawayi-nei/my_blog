@@ -1,0 +1,32 @@
+[Unit]
+Description=My Blog Web (Next.js)
+# API 先启动，页面服务端渲染时会请求它。
+After=network-online.target myblog-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=myblog
+Group=myblog
+WorkingDirectory=/srv/my_blog/frontend
+
+Environment=NODE_ENV=production
+# 服务端组件请求 FastAPI 用这个地址；必须与 backend 监听地址一致。
+Environment=API_BASE_URL=http://127.0.0.1:8000
+# NEXT_PUBLIC_* 实际在 next build 时内联；这里保留是为了运行环境一致。
+Environment=NEXT_PUBLIC_SITE_URL=http://123.206.100.36
+
+# 只监听本机，由 nginx 对外。
+ExecStart=/usr/bin/npm run start -- --hostname 127.0.0.1 --port 3000
+
+Restart=always
+RestartSec=5
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+# npm 可能需要读取 home 下的配置，因此设为只读而不是完全隐藏。
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

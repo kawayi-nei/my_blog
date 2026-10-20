@@ -54,7 +54,7 @@ my_blog/
 │   ├── playwright.config.ts
 │   ├── package.json
 │   └── .env.local.example
-├── deploy/                 # 后续部署阶段创建（当前不存在）
+├── deploy/                 # nginx、systemd、备份脚本与上线指南
 ├── docs/superpowers/       # 设计文档与实施计划
 └── README.md
 ```
@@ -261,11 +261,22 @@ ADMIN_ENABLED=true
 - 只有 `JWT_SECRET` 和 `ADMIN_PASSWORD` 会拒绝以 `replace-with` 开头的占位符（长度下限分别为 32 和 12 字符）。`IP_HASH_SALT` 必须手动替换为随机值，但不会被校验。
 - 生产环境设置 `COOKIE_SECURE=true`（需要 HTTPS），并配置真实的 `SITE_ORIGIN`（后台写操作的 Origin 校验依赖它）。
 - `frontend/package.json` 中的 `@swc/core` override 针对的是 next-intl 的传递依赖：若在 Windows 上遇到 `ERR_SWC_NATIVE_CACHE`，当前通过 pin 到 1.16.0 规避；升级 next-intl 或修复 ACL 后可移除该 override。这不是所有平台都必须保留的设置。
-- `frontend/src/content/site.ts` 中的 GitHub 与 email 仍是占位值，上线前请替换为真实信息。
+- `frontend/src/content/site.ts` 中的 email 仍是占位值，上线前请按需替换为真实信息（GitHub 已指向 `kawayi-nei`）。
 - 限流为进程内实现。生产环境建议使用单个 uvicorn worker，并由 nginx `limit_req` 兜底。
 - 后台已实现登录、受保护布局、文章 CRUD、Markdown 编辑器、图片上传与媒体库。E2E 会重置管理员密码并写入开发库 `my_blog`；不要用该库保存重要数据。上传限制为单文件 5 MB，图片单边不超过 12000 像素且总像素不超过 4000 万；`backend/uploads/` 已 gitignore。
 
+## 部署
+
+当前部署目标：Ubuntu 24.04，公网 IP `123.206.100.36`，暂无域名，先用 HTTP 访问。
+完整步骤、变量解释、systemd/nginx 配置、备份与回滚见 `deploy/README.md`。
+
+- `deploy/nginx.conf`：nginx 站点配置
+- `deploy/myblog-api.service`：FastAPI systemd 单元
+- `deploy/myblog-web.service`：Next.js systemd 单元
+- `deploy/backup.sh`：数据库与上传文件每日备份
+
 ## 相关文档
 
+- 部署指南：`deploy/README.md`
 - 设计文档：`docs/superpowers/specs/2026-10-19-personal-blog-design.md`
 - 基础阶段实施计划：`docs/superpowers/plans/2026-10-19-personal-blog-foundation.md`

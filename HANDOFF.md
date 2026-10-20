@@ -21,6 +21,7 @@
 - 基础闭环实施计划：`Z:\my_blog\docs\superpowers\plans\2026-10-19-personal-blog-foundation.md`
 - 后台管理设计文档：`Z:\my_blog\docs\superpowers\specs\2026-10-20-admin-posts-design.md`
 - 后台管理实施计划：`Z:\my_blog\docs\superpowers\plans\2026-10-20-admin-posts.md`
+- 部署指南：`Z:\my_blog\deploy\README.md`（目标服务器 `123.206.100.36`，Ubuntu 24.04，暂无域名，先 HTTP）
 - 本交接文档：`Z:\my_blog\HANDOFF.md`
 - 自动记忆：`C:\Users\Administrator\.claude\projects\Z--claude-code\memory\project_my-blog.md`
 

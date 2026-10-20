@@ -1,0 +1,33 @@
+[Unit]
+Description=My Blog API (FastAPI)
+# 网络与 PostgreSQL 就绪后再启动，避免开机时数据库还没起来导致连接失败。
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=myblog
+Group=myblog
+WorkingDirectory=/srv/my_blog/backend
+
+# 让 Python 日志立即写入 journald，不因缓冲而延迟。
+Environment=PYTHONUNBUFFERED=1
+
+# 只监听本机，外部只能通过 nginx 访问。
+# --workers 1：登录限流是进程内实现，多 worker 会各自计数，失去全局效果。
+# --proxy-headers：让 FastAPI 使用 nginx 传来的 X-Forwarded-For 作为客户端 IP，
+#   否则限流、阅读统计都会把所有人当成 127.0.0.1。
+ExecStart=/srv/my_blog/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1
+
+Restart=always
+RestartSec=5
+
+# 基础加固：禁止提权、隔离临时目录、系统目录只读。
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/my_blog/backend/uploads
+
+[Install]
+WantedBy=multi-user.target
