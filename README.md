@@ -224,7 +224,7 @@ npm run test:e2e
 
 当前基线：**6 passed**（4 条公开浏览 + 1 条后台文章主流程 + 1 条后台项目主流程）。
 
-E2E 读取 `backend/.env`（开发库 `my_blog`），全局初始化会执行 `alembic upgrade head`、运行 `seed_demo` 写入演示文章，并**重置管理员密码**。Playwright 会自动启动或复用 3000/8000 端口上的服务；`seed_demo` 是 upsert，会覆盖 `first-post` 的演示内容并刷新发布时间。
+E2E 读取 `backend/.env`（开发库 `my_blog`）。Playwright 启动后端前会先执行 `alembic upgrade head`、`seed_demo`（写入演示文章）与 `create_admin`（**重置管理员密码**），globalSetup 会再确保一次。Playwright 会自动启动或复用 3000/8000 端口上的服务；`seed_demo` 是 upsert，会覆盖 `first-post` 的演示内容并刷新发布时间。
 
 ### 生产构建
 

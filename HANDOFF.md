@@ -128,7 +128,7 @@
   - 后台登录 → 新建 → 发布 → 删除主流程
   - 后台登录 → 新建项目 → 发布 → 公开页校验 → 删除主流程
   - Playwright 自动启动/复用 FastAPI 与 Next
-  - globalSetup 先 `alembic upgrade head`、`seed_demo`，并重置管理员密码
+  - Playwright 启动后端前会先执行 `alembic upgrade head`、`seed_demo` 与 `create_admin`，globalSetup 会再确保一次
 
 ## 6. 尚未完成（后续计划）
 
@@ -153,7 +153,7 @@
 ## 7. 已知问题与注意事项
 
 - `frontend/src/content/site.ts` 的 GitHub/email 是占位值，上线前必须替换。
-- E2E 使用**开发库** `my_blog`，并 upsert `first-post`；globalSetup 会读取 `backend/.env` 并**重置管理员密码**。不要拿它跑重要数据。
+- E2E 使用**开发库** `my_blog`，并 upsert `first-post`；Playwright 启动后端前与 globalSetup 都会读取 `backend/.env` 并**重置管理员密码**。不要拿它跑重要数据。
 - Playwright 使用 `workers: 1`，规避 Next dev 冷编译超时。
 - 上传限制：单文件 5 MB；图片单边 ≤ 12000 像素、总像素 ≤ 4000 万。`backend/uploads/` 已 gitignore。
 - pytest 会删除/重建 `my_blog_test` 的表，测试结束后测试库保持空结构。
@@ -161,7 +161,7 @@
 - `@swc/core` 在 `frontend/package.json` 里被 pin 到 `1.16.0`，是本机 Windows ACL 导致 `ERR_SWC_NATIVE_CACHE` 的 workaround；升级 next-intl 或修复 ACL 后可移除。
 - `API_BASE_URL` 被 `next.config.ts` 在 **build 时**读取并固化；`src/lib/api.ts` 在服务端运行时也读取它。
 - 限流是进程内实现，生产单 uvicorn worker，nginx `limit_req` 作为兜底。
-- 迁移 `0003_projects` 新增 `projects` 表；E2E 的 globalSetup 会自动 `alembic upgrade head`。
+- 迁移 `0003_projects` 新增 `projects` 表；Playwright 启动后端前会自动 `alembic upgrade head`，globalSetup 会再确保一次。
 
 ## 8. 常用命令
 

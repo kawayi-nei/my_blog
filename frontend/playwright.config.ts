@@ -55,7 +55,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `"${python}" -m uvicorn app.main:app --host 127.0.0.1 --port 8000`,
+      command: `"${python}" -m alembic upgrade head && "${python}" -m app.scripts.seed_demo && "${python}" -m app.scripts.create_admin && "${python}" -m uvicorn app.main:app --host 127.0.0.1 --port 8000`,
       cwd: backendDir,
       url: 'http://127.0.0.1:8000/api/health',
       reuseExistingServer: !process.env.CI,
