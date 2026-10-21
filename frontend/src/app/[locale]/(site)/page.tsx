@@ -1,8 +1,13 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import PostCard from '@/components/post-card';
+import ProjectCard from '@/components/project-card';
 import {site} from '@/content/site';
 import {Link} from '@/i18n/navigation';
-import {getPosts} from '@/lib/api';
+import {
+  getPosts,
+  getProjects,
+  type ProjectLocale
+} from '@/lib/api';
 
 export default async function HomePage({
   params
@@ -12,8 +17,13 @@ export default async function HomePage({
   const {locale} = await params;
   setRequestLocale(locale);
   const t = await getTranslations('home');
+  const projectLocale: ProjectLocale = locale === 'en' ? 'en' : 'zh';
 
-  const data = await getPosts({pageSize: 5});
+  const [posts, projects] = await Promise.all([
+    getPosts({pageSize: 5}),
+    getProjects({locale: projectLocale, featured: true})
+  ]);
+  const featuredProjects = projects.slice(0, 3);
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-16">
@@ -44,15 +54,40 @@ export default async function HomePage({
         </a>
       </div>
 
+      {featuredProjects.length > 0 ? (
+        <section className="mt-16">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="font-mono text-sm text-muted">
+              &gt; {t('featuredProjects')}_
+            </h2>
+            <Link
+              href="/projects"
+              className="font-mono text-xs text-muted hover:text-accent"
+            >
+              {t('allProjects')} →
+            </Link>
+          </div>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredProjects.map((project) => (
+              <ProjectCard
+                key={project.slug}
+                project={project}
+                locale={locale}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="mt-16">
         <h2 className="font-mono text-sm text-muted">
           &gt; {t('latestPosts')}_
         </h2>
         <div className="mt-6 grid gap-4">
-          {data.items.length === 0 ? (
+          {posts.items.length === 0 ? (
             <p className="text-muted">{t('empty')}</p>
           ) : (
-            data.items.map((post) => (
+            posts.items.map((post) => (
               <PostCard
                 key={post.slug}
                 post={post}

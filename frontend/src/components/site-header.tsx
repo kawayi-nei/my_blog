@@ -18,6 +18,9 @@ export default function SiteHeader({
           ~/{locale === 'zh' ? site.name : site.nameEn}
         </Link>
         <nav className="flex items-center gap-5 font-mono text-xs text-muted">
+          <Link href="/projects" className="hover:text-foreground">
+            {t('projects')}
+          </Link>
           <Link href="/posts" className="hover:text-foreground">
             {t('posts')}
           </Link>
