@@ -32,6 +32,9 @@ export default async function AdminProtectedLayout({
             <Link href="/admin/posts" className="hover:text-accent">
               {t('posts')}
             </Link>
+            <Link href="/admin/projects" className="hover:text-accent">
+              {t('projects')}
+            </Link>
             <Link href="/admin/media" className="hover:text-accent">
               {t('media')}
             </Link>
