@@ -47,7 +47,7 @@ def run_migration_smoke():
     async def drop_all():
         conn = await asyncpg.connect(url)
         await conn.execute(
-            "DROP TABLE IF EXISTS media, post_tags, posts, tags, users, alembic_version CASCADE"
+            "DROP TABLE IF EXISTS projects, media, post_tags, posts, tags, users, alembic_version CASCADE"
         )
         await conn.close()
 
@@ -79,8 +79,34 @@ def run_migration_smoke():
                 """
             )
         }
+        project_constraints = {
+            row["conname"]
+            for row in await conn.fetch(
+                """
+                select conname
+                from pg_constraint
+                where conrelid = 'projects'::regclass and contype = 'c'
+                """
+            )
+        }
+        project_indexes = {
+            row["indexname"]
+            for row in await conn.fetch(
+                """
+                select indexname
+                from pg_indexes
+                where schemaname='public' and tablename='projects'
+                """
+            )
+        }
         await conn.close()
-        return tables, constraints, indexes
+        return (
+            tables,
+            constraints,
+            indexes,
+            project_constraints,
+            project_indexes,
+        )
 
     asyncio.run(drop_all())
     env = os.environ.copy()
@@ -91,8 +117,22 @@ def run_migration_smoke():
         env=env,
         check=True,
     )
-    tables, constraints, indexes = asyncio.run(inspect())
-    assert {"users", "posts", "tags", "post_tags", "media", "alembic_version"} <= tables
+    (
+        tables,
+        constraints,
+        indexes,
+        project_constraints,
+        project_indexes,
+    ) = asyncio.run(inspect())
+    assert {
+        "users",
+        "posts",
+        "tags",
+        "post_tags",
+        "media",
+        "projects",
+        "alembic_version",
+    } <= tables
     assert {
         "ck_posts_language",
         "ck_posts_status",
@@ -104,6 +144,8 @@ def run_migration_smoke():
         "ix_posts_excerpt_trgm",
         "ix_posts_content_trgm",
     } <= indexes
+    assert {"ck_projects_status", "ck_projects_slug_format"} <= project_constraints
+    assert "ix_projects_public_order" in project_indexes
     asyncio.run(drop_all())
 
 
