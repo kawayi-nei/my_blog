@@ -5,13 +5,13 @@
 
 ## 1. 一句话现状
 
-个人博客的**基础闭环（M1–M3）已在 `master`**；**计划 2（后台管理）在 `feature/admin-posts` 分支完成，待合并 `master`**：
+个人博客的**基础闭环（M1–M3）与计划 2（后台管理）已在 `master`**；**计划 3A（作品集）在 `feature/projects` 分支完成，待合并 `master`**：
 
-- 当前分支：`feature/admin-posts`（未切换、未合并）
-- HEAD：以 `git log -1 --oneline` 为准（本次文档收尾前为 `9d620cc`）
-- 工作树：干净（任务 13 已提交 `.gitignore` 与文档）
-- 验证：后端 pytest **54 passed**；前端 Playwright **5 passed**；`npm run build` 成功
-- 功能分支 `feature/foundation` 已合并并删除
+- 当前分支：`feature/projects`（未切换、未合并）
+- HEAD：以 `git log -1 --oneline` 为准（任务 8 提交前为 `8284664`）
+- 工作树：干净（任务 8 已提交 E2E 与文档）
+- 验证：后端 pytest **69 passed**；前端 Playwright **6 passed**；`npm run build` 成功
+- 功能分支 `feature/foundation`、`feature/admin-posts` 已合并并删除
 
 ## 2. 项目位置与关键文档
 
@@ -21,6 +21,8 @@
 - 基础闭环实施计划：`Z:\my_blog\docs\superpowers\plans\2026-10-19-personal-blog-foundation.md`
 - 后台管理设计文档：`Z:\my_blog\docs\superpowers\specs\2026-10-20-admin-posts-design.md`
 - 后台管理实施计划：`Z:\my_blog\docs\superpowers\plans\2026-10-20-admin-posts.md`
+- 作品集设计文档：`Z:\my_blog\docs\superpowers\specs\2026-10-21-projects-design.md`
+- 作品集实施计划：`Z:\my_blog\docs\superpowers\plans\2026-10-21-projects.md`
 - 部署指南：`Z:\my_blog\deploy\README.md`（目标服务器 `123.206.100.36`，Ubuntu 24.04，暂无域名，先 HTTP）
 - 本交接文档：`Z:\my_blog\HANDOFF.md`
 - 自动记忆：`C:\Users\Administrator\.claude\projects\Z--claude-code\memory\project_my-blog.md`
@@ -60,14 +62,14 @@
 - 站点可变内容：`frontend/src/content/site.ts`（GitHub/email 仍是占位值）
 - 深色终端风格：`frontend/src/app/globals.css`，固定深色，不做明暗切换。
 
-## 5. 已完成内容（M1–M3 + 计划 2）
+## 5. 已完成内容（M1–M3 + 计划 2 + 计划 3A）
 
 ### 后端
 
 - FastAPI 骨架、pydantic-settings 配置、健康检查
 - SQLAlchemy 2 async + asyncpg + Alembic
-- 表：`users`、`posts`、`tags`、`post_tags`、`media`
-- 迁移 `0001_initial`：CHECK 约束、`pg_trgm` GIN 索引、级联删除
+- 表：`users`、`posts`、`tags`、`post_tags`、`media`、`projects`
+- 迁移 `0001_initial`：CHECK 约束、`pg_trgm` GIN 索引、级联删除；`0002_media`；`0003_projects`
 - 管理员种子：`python -m app.scripts.create_admin`
 - 认证：
   - Argon2 密码哈希
@@ -79,11 +81,14 @@
   - `GET /api/posts`（分页、tag、language 过滤、稳定排序）
   - `GET /api/posts/{slug}`（只返回已发布，草稿 404）
   - `GET /api/tags`（只统计已发布文章）
+  - `GET /api/projects`（公开项目列表，`locale=zh|en`，可选 `featured`）
+  - `GET /api/projects/{slug}`（只返回已发布，草稿 404；按 locale 返回标题/摘要/正文）
   - `GET /api/site/config`
   - `POST /api/auth/login`、`POST /api/auth/logout`、`GET /api/auth/me`
 - 演示数据：`python -m app.scripts.seed_demo`（upsert `first-post`）
 - 后台 API（计划 2）：
   - `GET/POST/PATCH/DELETE /api/admin/posts`（草稿/发布、分页、标签）
+  - `GET/POST/PATCH/DELETE /api/admin/projects`（草稿/发布、分页、状态与关键词过滤）
   - 标签最小集：`GET/POST /api/admin/tags`，文章通过 `tag_ids` 关联已有标签
   - `POST /api/admin/uploads`：图片上传，5 MB 上限，单边 ≤ 12000 像素、总像素 ≤ 4000 万
   - `GET/DELETE /api/admin/media`：媒体库列表与删除
@@ -107,24 +112,28 @@
   - Markdown 编辑器（左编辑右实时预览、正文图片上传）
   - 媒体库（上传、复制链接、删除）
   - 公开页头后台入口（依据 `/api/site/config`）
+- 作品集（计划 3A）：
+  - 公开项目列表 `/zh/projects`、详情 `/zh/projects/{slug}`，按当前 locale 展示中英文内容
+  - 首页精选项目区块
+  - 后台项目管理列表（状态/关键词筛选、分页）与新建/编辑表单（双语标题正文、技术栈、封面、Repo/Demo、精选/排序）
 
 ### 测试
 
-- 后端：pytest + httpx，54 passed
+- 后端：pytest + httpx，69 passed
   - 测试库 `my_blog_test`，每测试 drop/create
   - 迁移冒烟测试检查表/CHECK/索引
   - 有防呆：URL 必须以 `/my_blog_test` 结尾
-- 前端：Playwright 5 passed
+- 前端：Playwright 6 passed
   - 首页、文章列表+详情、语言切换、404 壳层
   - 后台登录 → 新建 → 发布 → 删除主流程
+  - 后台登录 → 新建项目 → 发布 → 公开页校验 → 删除主流程
   - Playwright 自动启动/复用 FastAPI 与 Next
   - globalSetup 先 `alembic upgrade head`、`seed_demo`，并重置管理员密码
 
 ## 6. 尚未完成（后续计划）
 
-### 计划 3：作品集与互动
+### 计划 3：互动与搜索
 
-- 项目表、双语项目 CRUD、项目列表/详情、首页精选
 - 标签管理页、标签筛选、站内搜索（`pg_trgm`）
 - 评论提交、蜜罐、频率限制、后台审核
 - 阅读统计：`post_views` 去重、`view_count`、后台统计
@@ -152,7 +161,7 @@
 - `@swc/core` 在 `frontend/package.json` 里被 pin 到 `1.16.0`，是本机 Windows ACL 导致 `ERR_SWC_NATIVE_CACHE` 的 workaround；升级 next-intl 或修复 ACL 后可移除。
 - `API_BASE_URL` 被 `next.config.ts` 在 **build 时**读取并固化；`src/lib/api.ts` 在服务端运行时也读取它。
 - 限流是进程内实现，生产单 uvicorn worker，nginx `limit_req` 作为兜底。
-- 还没有 `deploy/` 目录。
+- 迁移 `0003_projects` 新增 `projects` 表；E2E 的 globalSetup 会自动 `alembic upgrade head`。
 
 ## 8. 常用命令
 

@@ -1,11 +1,7 @@
 import {expect, test} from '@playwright/test';
-
-const username = process.env.E2E_ADMIN_USERNAME ?? 'admin';
-const password = process.env.E2E_ADMIN_PASSWORD ?? '';
+import {loginAsAdmin} from './helpers';
 
 test('admin can log in, create, publish and delete a post', async ({page}) => {
-  test.skip(!username || !password, 'E2E admin credentials not configured');
-
   const stamp = Date.now();
   const title = `E2E 管理员文章 ${stamp}`;
   const slug = `e2e-admin-${stamp}`;
@@ -13,13 +9,7 @@ test('admin can log in, create, publish and delete a post', async ({page}) => {
   await page.goto('/zh');
   await expect(page.getByRole('link', {name: '后台'})).toBeVisible();
 
-  await page.goto('/zh/admin/posts');
-  await expect(page).toHaveURL(/\/zh\/admin\/login$/);
-
-  await page.getByLabel('用户名').fill(username);
-  await page.getByLabel('密码').fill(password);
-  await page.getByRole('button', {name: '登录'}).click();
-  await expect(page).toHaveURL(/\/zh\/admin\/posts$/);
+  await loginAsAdmin(page);
 
   await page.getByRole('link', {name: '新建文章'}).click();
   await expect(page).toHaveURL(/\/zh\/admin\/posts\/new$/);
