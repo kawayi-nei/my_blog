@@ -1,6 +1,7 @@
 {
   "nav": {
     "posts": "Posts",
+    "projects": "Projects",
     "github": "GitHub",
     "admin": "Admin"
   },
@@ -11,6 +12,8 @@
     "greeting": "Hi, I'm",
     "tagline": "Notes on remote sensing, water, and code.",
     "latestPosts": "Latest posts",
+    "featuredProjects": "Featured projects",
+    "allProjects": "View all projects",
     "empty": "No posts yet"
   },
   "posts": {
@@ -20,6 +23,18 @@
     "views": "views",
     "prev": "Previous",
     "next": "Next"
+  },
+  "projects": {
+    "title": "Projects",
+    "empty": "No projects yet",
+    "back": "Back to projects",
+    "repo": "Repository",
+    "demo": "Live demo",
+    "started": "Started",
+    "ended": "Ended",
+    "present": "Present",
+    "featured": "Featured",
+    "techStack": "Tech stack"
   },
   "errors": {
     "title": "Something went wrong",
@@ -32,6 +47,7 @@
   "admin": {
     "nav": {
       "posts": "Posts",
+      "projects": "Projects",
       "media": "Media",
       "backToSite": "Back to site",
       "logout": "Log out",
@@ -107,6 +123,76 @@
         "titleRequired": "Title is required",
         "slugRequired": "Enter a valid slug",
         "tooLong": "Too long"
+      }
+    },
+    "projects": {
+      "title": "Projects",
+      "new": "New project",
+      "empty": "No projects yet",
+      "all": "All",
+      "draft": "Draft",
+      "published": "Published",
+      "search": "Search",
+      "searchPlaceholder": "Search slug or title",
+      "filter": "Filter",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteFailed": "Delete failed. Please try again.",
+      "confirmDelete": "Delete “{title}”? This cannot be undone.",
+      "updated": "Updated",
+      "status": "Status",
+      "featured": "Featured",
+      "sortOrder": "Sort order",
+      "prev": "Previous",
+      "next": "Next",
+      "form": {
+        "createTitle": "New project",
+        "editTitle": "Edit project",
+        "titleZh": "Chinese title",
+        "titleEn": "English title",
+        "slug": "Slug",
+        "slugHint": "Lowercase letters, numbers and hyphens only",
+        "status": "Status",
+        "statusDraft": "Draft",
+        "statusPublished": "Published",
+        "featured": "Featured project",
+        "sortOrder": "Sort order (lower comes first)",
+        "startedOn": "Start date",
+        "endedOn": "End date",
+        "techStack": "Tech stack",
+        "techStackHint": "Comma-separated, e.g. PyTorch, FastAPI",
+        "repoUrl": "Repository URL",
+        "demoUrl": "Demo URL",
+        "summaryZh": "Chinese summary",
+        "summaryEn": "English summary",
+        "contentZh": "Chinese content",
+        "contentEn": "English content",
+        "save": "Save",
+        "saving": "Saving…",
+        "cancel": "Cancel",
+        "back": "Back to list",
+        "saved": "Saved",
+        "slugConflict": "This slug is already taken",
+        "invalid": "Invalid form values",
+        "saveFailed": "Save failed. Please try again.",
+        "dateOrder": "End date cannot be earlier than start date",
+        "titleRequired": "Title is required",
+        "slugRequired": "Enter a valid slug",
+        "tooLong": "Too long",
+        "cover": {
+          "label": "Cover",
+          "preview": "Cover preview",
+          "noCover": "No cover selected",
+          "upload": "Upload cover",
+          "uploading": "Uploading…",
+          "choose": "Choose from media",
+          "close": "Close media",
+          "clear": "Clear cover",
+          "loading": "Loading…",
+          "libraryEmpty": "Media library is empty. Upload an image first.",
+          "loadFailed": "Failed to load media",
+          "uploadFailed": "Cover upload failed"
+        }
       }
     },
     "media": {

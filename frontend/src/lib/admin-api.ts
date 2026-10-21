@@ -4,6 +4,8 @@ import {ApiError} from '@/lib/api';
 import type {
   AdminPostDetail,
   AdminPostListResponse,
+  AdminProjectDetail,
+  AdminProjectListResponse,
   AdminTag,
   MediaListResponse
 } from '@/lib/admin-types';
@@ -96,4 +98,39 @@ export async function getMediaList(params?: {
   return adminFetch<MediaListResponse>(
     `/api/admin/media${query ? `?${query}` : ''}`
   );
+}
+
+export async function getAdminProjects(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  q?: string;
+}): Promise<AdminProjectListResponse> {
+  const search = new URLSearchParams();
+  if (params?.page !== undefined) search.set('page', String(params.page));
+  if (params?.pageSize !== undefined)
+    search.set('page_size', String(params.pageSize));
+  if (params?.status) search.set('status', params.status);
+  if (params?.q) search.set('q', params.q);
+  const query = search.toString();
+  return adminFetch<AdminProjectListResponse>(
+    `/api/admin/projects${query ? `?${query}` : ''}`
+  );
+}
+
+export async function getAdminProject(
+  id: number
+): Promise<AdminProjectDetail> {
+  return adminFetch<AdminProjectDetail>(`/api/admin/projects/${id}`);
+}
+
+export async function getAdminProjectOrNull(
+  id: number
+): Promise<AdminProjectDetail | null> {
+  try {
+    return await getAdminProject(id);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 }

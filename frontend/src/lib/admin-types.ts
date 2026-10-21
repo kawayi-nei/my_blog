@@ -44,3 +44,35 @@ export type MediaListResponse = {
   page: number;
   page_size: number;
 };
+
+export type AdminProjectListItem = {
+  id: number;
+  slug: string;
+  title_zh: string;
+  title_en: string;
+  status: 'draft' | 'published';
+  featured: boolean;
+  sort_order: number;
+  started_on: string | null;
+  ended_on: string | null;
+  cover_url: string | null;
+  updated_at: string;
+};
+
+export type AdminProjectDetail = AdminProjectListItem & {
+  summary_zh: string;
+  summary_en: string;
+  content_md_zh: string;
+  content_md_en: string;
+  tech_stack: string[];
+  repo_url: string | null;
+  demo_url: string | null;
+  created_at: string;
+};
+
+export type AdminProjectListResponse = {
+  items: AdminProjectListItem[];
+  total: number;
+  page: number;
+  page_size: number;
+};

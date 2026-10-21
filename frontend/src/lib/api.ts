@@ -99,6 +99,60 @@ export async function getPostOrNull(
   }
 }
 
+export type ProjectListItem = {
+  slug: string;
+  title: string;
+  summary: string;
+  cover_url: string | null;
+  tech_stack: string[];
+  featured: boolean;
+  started_on: string | null;
+  ended_on: string | null;
+};
+
+export type ProjectDetail = ProjectListItem & {
+  content_md: string;
+  repo_url: string | null;
+  demo_url: string | null;
+};
+
+export type ProjectLocale = 'zh' | 'en';
+
+export async function getProjects(params: {
+  locale: ProjectLocale;
+  featured?: boolean;
+}): Promise<ProjectListItem[]> {
+  const search = new URLSearchParams();
+  search.set('locale', params.locale);
+  if (params.featured) search.set('featured', 'true');
+  return fetchApi<ProjectListItem[]>(`/api/projects?${search.toString()}`);
+}
+
+export async function getProject(
+  slug: string,
+  locale: ProjectLocale
+): Promise<ProjectDetail> {
+  const search = new URLSearchParams();
+  search.set('locale', locale);
+  return fetchApi<ProjectDetail>(
+    `/api/projects/${encodeURIComponent(slug)}?${search.toString()}`
+  );
+}
+
+export async function getProjectOrNull(
+  slug: string,
+  locale: ProjectLocale
+): Promise<ProjectDetail | null> {
+  try {
+    return await getProject(slug, locale);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export type SiteConfigResponse = {
   admin_enabled: boolean;
 };

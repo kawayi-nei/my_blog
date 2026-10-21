@@ -1,6 +1,7 @@
 {
   "nav": {
     "posts": "文章",
+    "projects": "作品集",
     "github": "GitHub",
     "admin": "后台"
   },
@@ -11,6 +12,8 @@
     "greeting": "你好，我是",
     "tagline": "记录遥感、水利与代码。",
     "latestPosts": "最新文章",
+    "featuredProjects": "精选项目",
+    "allProjects": "查看全部作品集",
     "empty": "暂无文章"
   },
   "posts": {
@@ -20,6 +23,18 @@
     "views": "次阅读",
     "prev": "上一页",
     "next": "下一页"
+  },
+  "projects": {
+    "title": "作品集",
+    "empty": "暂无项目",
+    "back": "返回作品集",
+    "repo": "代码仓库",
+    "demo": "在线演示",
+    "started": "开始",
+    "ended": "结束",
+    "present": "至今",
+    "featured": "精选",
+    "techStack": "技术栈"
   },
   "errors": {
     "title": "出了点问题",
@@ -32,6 +47,7 @@
   "admin": {
     "nav": {
       "posts": "文章",
+      "projects": "项目",
       "media": "媒体库",
       "backToSite": "返回站点",
       "logout": "退出登录",
@@ -107,6 +123,76 @@
         "titleRequired": "请输入标题",
         "slugRequired": "请输入合法 Slug",
         "tooLong": "内容过长"
+      }
+    },
+    "projects": {
+      "title": "项目管理",
+      "new": "新建项目",
+      "empty": "暂无项目",
+      "all": "全部",
+      "draft": "草稿",
+      "published": "已发布",
+      "search": "搜索",
+      "searchPlaceholder": "搜索 slug 或标题",
+      "filter": "筛选",
+      "edit": "编辑",
+      "delete": "删除",
+      "deleteFailed": "删除失败，请稍后重试",
+      "confirmDelete": "确定删除《{title}》？此操作不可撤销。",
+      "updated": "更新时间",
+      "status": "状态",
+      "featured": "精选",
+      "sortOrder": "排序",
+      "prev": "上一页",
+      "next": "下一页",
+      "form": {
+        "createTitle": "新建项目",
+        "editTitle": "编辑项目",
+        "titleZh": "中文标题",
+        "titleEn": "英文标题",
+        "slug": "Slug",
+        "slugHint": "仅小写字母、数字和连字符",
+        "status": "状态",
+        "statusDraft": "草稿",
+        "statusPublished": "已发布",
+        "featured": "精选项目",
+        "sortOrder": "排序（越小越靠前）",
+        "startedOn": "开始日期",
+        "endedOn": "结束日期",
+        "techStack": "技术栈",
+        "techStackHint": "用英文逗号分隔，例如 PyTorch, FastAPI",
+        "repoUrl": "Repo 地址",
+        "demoUrl": "Demo 地址",
+        "summaryZh": "中文摘要",
+        "summaryEn": "英文摘要",
+        "contentZh": "中文正文",
+        "contentEn": "英文正文",
+        "save": "保存",
+        "saving": "保存中…",
+        "cancel": "取消",
+        "back": "返回列表",
+        "saved": "已保存",
+        "slugConflict": "Slug 已被占用，请换一个",
+        "invalid": "表单内容不合法，请检查",
+        "saveFailed": "保存失败，请稍后重试",
+        "dateOrder": "结束日期不能早于开始日期",
+        "titleRequired": "请填写标题",
+        "slugRequired": "请输入合法 Slug",
+        "tooLong": "内容过长",
+        "cover": {
+          "label": "封面",
+          "preview": "封面预览",
+          "noCover": "未设置封面",
+          "upload": "上传封面",
+          "uploading": "上传中…",
+          "choose": "从媒体库选择",
+          "close": "收起媒体库",
+          "clear": "清除封面",
+          "loading": "加载中…",
+          "libraryEmpty": "媒体库为空，请先上传图片",
+          "loadFailed": "媒体库加载失败",
+          "uploadFailed": "封面上传失败"
+        }
       }
     },
     "media": {
