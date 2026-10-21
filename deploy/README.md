@@ -400,6 +400,7 @@ sudo systemctl status myblog-web
 - **`--proxy-headers --forwarded-allow-ips=127.0.0.1`**：让 FastAPI 信任 nginx 传来的 `X-Forwarded-For`，拿到真实客户端 IP。否则所有请求都被当成 127.0.0.1，登录限流和阅读统计都会失真。
 - **`Restart=always`**：进程异常退出后自动拉起。
 - **`ProtectSystem=full` / `PrivateTmp` / `NoNewPrivileges`**：基础加固，减少进程被利用后的影响面。
+- **`ProtectHome=read-only` 而不是 `true`**：asyncpg 建立连接时会探测 `~/.postgresql/postgresql.key` 这个默认客户端证书路径。如果把 `/home` 完全隐藏，这个探测会变成 `Permission denied`，即使你根本没有使用客户端证书。设为只读即可。
 
 后端自己读取 `backend/.env`，所以 service 文件里不需要再写数据库密码。这样密钥只存在一个地方。
 

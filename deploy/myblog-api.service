@@ -26,7 +26,9 @@ RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=full
-ProtectHome=true
+# 不能设为 true：asyncpg 连接时会探测 ~/.postgresql/postgresql.key，
+# 完全隐藏 /home 会让这个探测变成 Permission denied（即使没有使用客户端证书）。
+ProtectHome=read-only
 ReadWritePaths=/srv/my_blog/backend/uploads
 
 [Install]
