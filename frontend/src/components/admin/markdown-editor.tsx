@@ -6,10 +6,12 @@ import {Markdown} from '@/components/markdown';
 
 export default function MarkdownEditor({
   value,
-  onChange
+  onChange,
+  id = 'content_md'
 }: {
   value: string;
   onChange: (value: string) => void;
+  id?: string;
 }) {
   const locale = useLocale();
   const t = useTranslations('admin.posts.form');
@@ -126,7 +128,7 @@ export default function MarkdownEditor({
         </div>
 
         <textarea
-          id="content_md"
+          id={id}
           ref={textareaRef}
           value={value}
           onChange={(event) => onChange(event.target.value)}
