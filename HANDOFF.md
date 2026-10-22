@@ -5,14 +5,13 @@
 
 ## 1. 一句话现状
 
-**基础闭环、计划 2（后台管理）、计划 3A（作品集）已上线；计划 3B（标签管理与站内搜索）功能分支已完成，待合并 `master`/上线。** 3B 当前在 `feature/tags-search` 分支。
+**基础闭环、计划 2（后台管理）、计划 3A（作品集）已上线；计划 3B（标签管理与站内搜索）已合并 `master`，待上线。**
 
-- 当前分支：`feature/tags-search`（计划 3B）
-- HEAD：以 `git log -1 --oneline` 为准（3B 功能与文档已提交）
-- 工作树：干净（本文档提交前）；3B 尚未合并到 `master`
+- 当前分支：`master`
+- HEAD：以 `git log -1 --oneline` 为准（3B 已合并并完成验证）
+- 工作树：干净；本地 `master` 领先 `origin/master`，GitHub 网络不可达，尚未推送
 - 验证：后端 pytest **85 passed**；前端 Playwright **9 passed**；`npm run build` 成功
-- 已合并并删除的功能分支：`feature/foundation`、`feature/admin-posts`、`feature/projects`
-- 待合并的功能分支：`feature/tags-search`
+- 已合并并删除的功能分支：`feature/foundation`、`feature/admin-posts`、`feature/projects`、`feature/tags-search`
 
 ## 2. 项目位置与关键文档
 
@@ -131,15 +130,13 @@
 
 ## 6. 接下来要做什么
 
-### 3A 已上线；3B 待合并并部署
+### 3A 已上线；3B 已合并，待部署
 
-3A 已部署到 `123.206.100.36`。3B 目前只在 `feature/tags-search`，先合并到 `master` 再上线。**3B 无数据库迁移、无新依赖**，服务器只需 bundle → build → restart：
+3A 已部署到 `123.206.100.36`。3B 已合并到 `master`。**3B 无数据库迁移、无新依赖**，服务器只需 bundle → build → restart：
 
-1. 本地合并并生成 bundle（服务器访问 GitHub 443 超时，仍需 bundle 传输）：
+1. 本地生成 bundle（服务器访问 GitHub 443 超时，仍需 bundle 传输）：
    ```bash
    cd Z:/my_blog
-   git checkout master
-   git merge --ff-only feature/tags-search
    git bundle create /z/my_blog_transfer/my_blog_3b.bundle master
    scp /z/my_blog_transfer/my_blog_3b.bundle ubuntu@123.206.100.36:/tmp/my_blog_3b.bundle
    ```
@@ -271,14 +268,14 @@ sudo systemctl restart myblog-api myblog-web
 继续 Z:\my_blog 个人博客项目。先读 HANDOFF.md、README.md 和
 docs/superpowers/specs/2026-10-19-personal-blog-design.md。
 
-当前状态：功能分支 feature/tags-search（HEAD 见 git log），计划 3B 标签管理与站内搜索已完成；
+当前状态：master（HEAD 见 git log），计划 3B 标签管理与站内搜索已合并并验证；
 基础闭环、计划 2 后台管理、计划 3A 作品集已合并并上线；
 后端 pytest 85 passed、Playwright 9 passed、build 成功。
 线上服务器 123.206.100.36（Ubuntu 24.04，HTTP，无域名）已部署 3A；
-3B 待合并 master 并部署（无迁移、无新依赖，bundle → npm run build → restart）。
+3B 待部署（无迁移、无新依赖，bundle → npm run build → restart）。
 服务器访问 GitHub 443 超时，按 HANDOFF 第 6 节用 git bundle + scp 更新。
 
-接下来：合并 3B 到 master 并部署上线，然后开始计划 3C（评论），
+接下来：部署 3B 上线，然后开始计划 3C（评论），
 先 brainstorming → spec → plan，再实现。
 
 约束：不要在 master 上直接开发，用功能分支；不要读取/打印/提交 .env
