@@ -123,15 +123,14 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
       const response = await fetch(`/api/admin/tags/${tag.id}`, {
         method: 'DELETE'
       });
-      if (response.status === 401) {
-        router.replace(`/${locale}/admin/login`);
-        return;
-      }
       if (response.ok || response.status === 404) {
         setTags((current) => current.filter((item) => item.id !== tag.id));
         return;
       }
-      handleFailure(response.status, t('deleteFailed'));
+      if (!response.ok) {
+        handleFailure(response.status, t('deleteFailed'));
+        return;
+      }
     } catch {
       setError(t('deleteFailed'));
     } finally {
