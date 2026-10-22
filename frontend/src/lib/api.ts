@@ -76,14 +76,16 @@ export async function getPosts(params?: {
   tag?: string;
   language?: PostListItem['language'];
 }): Promise<PostListResponse> {
-  const search = new URLSearchParams();
-  if (params?.page !== undefined) search.set('page', String(params.page));
+  const query = new URLSearchParams();
+  if (params?.page !== undefined) query.set('page', String(params.page));
   if (params?.pageSize !== undefined)
-    search.set('page_size', String(params.pageSize));
-  if (params?.tag) search.set('tag', params.tag);
-  if (params?.language) search.set('language', params.language);
-  const query = search.toString();
-  return fetchApi<PostListResponse>(`/api/posts${query ? `?${query}` : ''}`);
+    query.set('page_size', String(params.pageSize));
+  if (params?.tag) query.set('tag', params.tag);
+  if (params?.language) query.set('language', params.language);
+  const queryString = query.toString();
+  return fetchApi<PostListResponse>(
+    `/api/posts${queryString ? `?${queryString}` : ''}`
+  );
 }
 
 export async function getPost(slug: string): Promise<PostDetail> {
@@ -130,10 +132,10 @@ export async function getProjects(params: {
   locale: ProjectLocale;
   featured?: boolean;
 }): Promise<ProjectListItem[]> {
-  const search = new URLSearchParams();
-  search.set('locale', params.locale);
-  if (params.featured) search.set('featured', 'true');
-  return fetchApi<ProjectListItem[]>(`/api/projects?${search.toString()}`);
+  const query = new URLSearchParams();
+  query.set('locale', params.locale);
+  if (params.featured) query.set('featured', 'true');
+  return fetchApi<ProjectListItem[]>(`/api/projects?${query.toString()}`);
 }
 
 export async function getProject(
