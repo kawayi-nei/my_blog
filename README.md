@@ -2,7 +2,7 @@
 
 个人站点：作品集 + 技术写作。前端使用 Next.js，后端使用 FastAPI，数据存储使用 PostgreSQL。
 
-计划 2 已完成后台登录、文章 CRUD、Markdown 编辑器、图片上传与媒体库；计划 3A 已完成双语作品集（项目表与 CRUD、公开列表/详情、首页精选、后台项目管理）。剩余标签管理页与搜索、评论、阅读统计、简历/关于、SEO 与部署（见文末文档）。
+计划 2 已完成后台登录、文章 CRUD、Markdown 编辑器、图片上传与媒体库；计划 3A 已完成双语作品集（项目表与 CRUD、公开列表/详情、首页精选、后台项目管理）；计划 3B 已完成标签管理与站内搜索。剩余评论、阅读统计、简历/关于、SEO 与部署（见文末文档）。
 
 ## 技术栈
 
@@ -23,7 +23,7 @@ my_blog/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
-│   │   │   ├── public/     # auth、site、posts、tags、projects
+│   │   │   ├── public/     # auth、site、posts、tags、projects、search
 │   │   │   └── admin/      # 后台文章、标签、项目、上传、媒体库
 │   │   ├── core/           # 配置、安全
 │   │   ├── db/             # 引擎、会话、Base
@@ -42,14 +42,14 @@ my_blog/
 │   └── .env.test.example
 ├── frontend/
 │   ├── src/
-│   │   ├── app/[locale]/   # 首页、文章、项目、后台（admin/）
-│   │   ├── components/     # 站点壳、文章组件、项目卡片、后台组件（admin/）
+│   │   ├── app/[locale]/   # 首页、文章、项目、标签、搜索、后台（admin/）
+│   │   ├── components/     # 站点壳、文章/标签列表组件、项目卡片、后台组件（admin/）
 │   │   ├── content/        # 目前只有 site.ts
 │   │   ├── i18n/           # next-intl 配置
 │   │   ├── lib/            # API 封装（server-only）
 │   │   ├── messages/       # zh.json、en.json
 │   │   └── proxy.ts
-│   ├── e2e/                # Playwright 测试（public、admin、projects）、helpers 与全局初始化
+│   ├── e2e/                # Playwright 测试（public、admin、projects、tags、search）、helpers 与全局初始化
 │   ├── next.config.ts
 │   ├── playwright.config.ts
 │   ├── package.json
@@ -209,7 +209,7 @@ cd backend
 "venv/Scripts/python.exe" -m pytest -v
 ```
 
-当前基线：**69 passed**。
+当前基线：**85 passed**。
 
 注意：pytest 会删除并重建 `my_blog_test` 中的所有表；请确保 `.env.test` 指向测试库，不要把测试指向开发库。测试会话结束时会再次删除表，测试库会保持空结构，下次运行重新迁移。
 
@@ -222,7 +222,7 @@ cd frontend
 npm run test:e2e
 ```
 
-当前基线：**6 passed**（4 条公开浏览 + 1 条后台文章主流程 + 1 条后台项目主流程）。
+当前基线：**9 passed**（4 条公开浏览 + 1 条搜索页 + 2 条标签流程（后台标签创建/改名/删除、公开标签页与未知标签 404）+ 1 条后台文章主流程 + 1 条后台项目主流程）。
 
 E2E 读取 `backend/.env`（开发库 `my_blog`）。Playwright 启动后端前会先执行 `alembic upgrade head`、`seed_demo`（写入演示文章）与 `create_admin`（**重置管理员密码**），globalSetup 会再确保一次。Playwright 会自动启动或复用 3000/8000 端口上的服务；`seed_demo` 是 upsert，会覆盖 `first-post` 的演示内容并刷新发布时间。
 
@@ -254,6 +254,7 @@ ADMIN_ENABLED=true
 - 打开 <http://localhost:3000/zh/admin>，使用 `backend/.env` 中配置的管理员账号登录。
 - 文章支持草稿/发布、Markdown 实时预览、正文图片上传。
 - 项目管理：中英文标题与正文、技术栈、封面、Repo/Demo 地址、精选与排序，支持草稿/发布。
+- 标签管理：创建、改名（可同时修改 slug）、删除，列表显示每个标签关联的文章数；删除标签只解除文章与标签的关联，不会删除文章。
 - 媒体库支持上传、复制链接、删除。
 - 所有 `/api/admin/*` 写操作都会校验 `Origin`；`SITE_ORIGIN` 必须与浏览器地址栏的来源（scheme + host + port）一致，否则请求会被拒绝。
 
@@ -264,7 +265,7 @@ ADMIN_ENABLED=true
 - `frontend/package.json` 中的 `@swc/core` override 针对的是 next-intl 的传递依赖：若在 Windows 上遇到 `ERR_SWC_NATIVE_CACHE`，当前通过 pin 到 1.16.0 规避；升级 next-intl 或修复 ACL 后可移除该 override。这不是所有平台都必须保留的设置。
 - `frontend/src/content/site.ts` 中的 email 仍是占位值，上线前请按需替换为真实信息（GitHub 已指向 `kawayi-nei`）。
 - 限流为进程内实现。生产环境建议使用单个 uvicorn worker，并由 nginx `limit_req` 兜底。
-- 后台已实现登录、受保护布局、文章 CRUD、Markdown 编辑器、图片上传、媒体库与项目管理。E2E 会重置管理员密码并写入开发库 `my_blog`；不要用该库保存重要数据。上传限制为单文件 5 MB，图片单边不超过 12000 像素且总像素不超过 4000 万；`backend/uploads/` 已 gitignore。
+- 后台已实现登录、受保护布局、文章 CRUD、Markdown 编辑器、图片上传、媒体库、项目管理与标签管理。E2E 会重置管理员密码并写入开发库 `my_blog`；不要用该库保存重要数据。上传限制为单文件 5 MB，图片单边不超过 12000 像素且总像素不超过 4000 万；`backend/uploads/` 已 gitignore。
 
 ## 部署
 

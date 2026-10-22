@@ -5,13 +5,14 @@
 
 ## 1. 一句话现状
 
-**基础闭环、计划 2（后台管理）、计划 3A（作品集）都已在 `master`**；本地 `master` HEAD `4847d0e`，已推送到 GitHub。线上服务器 `123.206.100.36` 目前只部署到计划 2，**3A 尚未上线**，因为服务器访问 GitHub 443 超时。
+**基础闭环、计划 2（后台管理）、计划 3A（作品集）已上线；计划 3B（标签管理与站内搜索）功能分支已完成，待合并 `master`/上线。** 3B 当前在 `feature/tags-search` 分支。
 
-- 当前分支：`master`
-- HEAD：`4847d0e fix: run e2e db setup before web server`
-- 工作树：干净；本地与 `origin/master` 同步
-- 验证：后端 pytest **69 passed**；前端 Playwright **6 passed**；`npm run build` 成功
+- 当前分支：`feature/tags-search`（计划 3B）
+- HEAD：`bec7702 refactor: reuse tag delete auth handling`
+- 工作树：干净（本文档提交前）；3B 尚未合并到 `master`
+- 验证：后端 pytest **85 passed**；前端 Playwright **9 passed**；`npm run build` 成功
 - 已合并并删除的功能分支：`feature/foundation`、`feature/admin-posts`、`feature/projects`
+- 待合并的功能分支：`feature/tags-search`
 
 ## 2. 项目位置与关键文档
 
@@ -24,7 +25,7 @@
 - 部署指南：`deploy/README.md`
 - 本交接文档：`Z:\my_blog\HANDOFF.md`
 - 自动记忆：`C:\Users\Administrator\.claude\projects\Z--claude-code\memory\project_my-blog.md`
-- 3A 传输 bundle：`Z:\my_blog_transfer\my_blog.bundle`（master `4847d0e`）
+- 历史传输 bundle：`Z:\my_blog_transfer\my_blog.bundle`（3A 上线时使用，master `4847d0e`）
 
 ## 3. 本地与线上环境
 
@@ -53,7 +54,7 @@
 | 数据库 | PostgreSQL 17，本机 `127.0.0.1:5432`，库 `my_blog` |
 | 访问地址 | `http://123.206.100.36`（暂无域名，HTTP 临时方案） |
 | 后台 | `http://123.206.100.36/zh/admin` |
-| 部署阶段 | 计划 2 已上线；计划 3A 待更新 |
+| 部署阶段 | 计划 3A 已上线；计划 3B 待合并/部署 |
 
 密码/密钥只存在于：
 
@@ -99,73 +100,71 @@
   - `GET /api/tags`
   - `GET /api/projects`（仅已发布，`featured`、`locale`）
   - `GET /api/projects/{slug}`（本地化标题/摘要/正文；草稿 404）
+  - `GET /api/search?q=&locale=`（文章 + 项目，`pg_trgm` 相关度排序）
   - `GET /api/site/config`
   - 登录/登出/me
 - 后台 API：
-  - 文章 CRUD、项目 CRUD、标签最小集（GET/POST）
+  - 文章 CRUD、项目 CRUD
+  - 标签完整管理：GET/POST/PATCH/DELETE，列表返回 `post_count`；改名可同时改 slug；删除只解除文章关联，不删除文章
   - 图片上传（5 MB、Pillow 复验、尺寸限制）、媒体库列表/删除
   - 所有后台接口继承 `require_admin` + `require_same_origin`
 
 ### 前端
 
 - Next.js 16.4.2 App Router + React 19 + Tailwind v4 + next-intl 4
-- 公开页：首页、文章列表/详情、作品集列表/详情、404/错误页
+- 公开页：首页、文章列表/详情、作品集列表/详情、公开标签页、搜索页、404/错误页
 - 首页：Hero、精选项目（最多 3 个）、最新文章
-- 页头：作品集、文章、后台（按开关）、GitHub、语言切换
-- 后台：登录、受保护布局、文章列表/编辑器、媒体库、项目列表/表单
+- 页头：作品集、文章、搜索、后台（按开关）、GitHub、语言切换
+- 文章列表显示可点击的标签 chips；标签页按标签筛选文章，未知标签 404
+- 后台：登录、受保护布局、文章列表/编辑器、媒体库、项目列表/表单、标签管理页（创建/改名/删除）
+- 标签管理页显示每个标签的文章数；删除标签不会删除文章
 - 项目表单：双语标题/摘要/正文、技术栈、起止日期、Repo/Demo、精选/排序、封面（上传/媒体库选择/清除）
 - Markdown：`react-markdown` + `remark-gfm` + `rehype-highlight`，不渲染原始 HTML
 
 ### 测试与部署配置
 
-- 后端 pytest：**69 passed**
-- Playwright：**6 passed**（公开 4 + 文章后台 1 + 项目后台 1）
+- 后端 pytest：**85 passed**
+- Playwright：**9 passed**（公开 4 + 搜索 1 + 标签 2 + 文章后台 1 + 项目后台 1）
 - `npm run build`：成功
 - `deploy/` 已包含 nginx、两个 systemd 单元、备份脚本、详细上线指南
 - 服务器已配置 systemd/nginx/HTTPS 前的 HTTP 访问；`myblog-api.service` 使用 `ProtectHome=read-only`（不能设为 true，否则 asyncpg 探测 `~/.postgresql` 会 EACCES）
 
 ## 6. 接下来要做什么
 
-### 先完成 3A 上线
+### 3A 已上线；3B 待合并并部署
 
-线上服务器无法访问 GitHub（`curl https://github.com` 443 超时），所以不能直接 `git pull`。当前用 bundle 传输：
+3A 已部署到 `123.206.100.36`。3B 目前只在 `feature/tags-search`，先合并到 `master` 再上线。**3B 无数据库迁移、无新依赖**，服务器只需 bundle → build → restart：
 
-1. 本地已生成 `Z:\my_blog_transfer\my_blog.bundle`（master `4847d0e`）。
-2. 本地 Git Bash：
+1. 本地合并并生成 bundle（服务器访问 GitHub 443 超时，仍需 bundle 传输）：
    ```bash
-   scp /z/my_blog_transfer/my_blog.bundle ubuntu@123.206.100.36:/tmp/my_blog.bundle
+   cd Z:/my_blog
+   git checkout master
+   git merge --ff-only feature/tags-search
+   git bundle create /z/my_blog_transfer/my_blog_3b.bundle master
+   scp /z/my_blog_transfer/my_blog_3b.bundle ubuntu@123.206.100.36:/tmp/my_blog_3b.bundle
    ```
-3. 服务器：
+2. 服务器：
    ```bash
-   sudo -u myblog git -C /srv/my_blog pull --ff-only /tmp/my_blog.bundle master
-   sudo -u myblog git -C /srv/my_blog log -1 --oneline   # 4847d0e
-   cd /srv/my_blog/backend
-   sudo -u myblog venv/bin/alembic upgrade head          # 0003_projects
-   sudo -u myblog venv/bin/alembic current
+   sudo -u myblog git -C /srv/my_blog pull --ff-only /tmp/my_blog_3b.bundle master
+   sudo -u myblog git -C /srv/my_blog log -1 --oneline
    cd /srv/my_blog/frontend
-   sudo -u myblog npm run build                          # 3A 无新依赖，可跳过 npm ci
+   sudo -u myblog npm run build
    sudo systemctl restart myblog-api myblog-web
    ```
-4. 验证：
+   无需 `alembic upgrade head`，无需 `pip install`/`npm ci`。
+3. 验证：
    ```bash
-   curl -s http://123.206.100.36/api/health
-   curl -s http://123.206.100.36/api/projects
-   curl -I http://123.206.100.36/zh/projects
+   curl -s "http://123.206.100.36/api/search?q=next&locale=zh"
+   curl -I http://123.206.100.36/zh/search
+   curl -I http://123.206.100.36/zh/tags/nextjs
    ```
-   然后在后台创建/发布一个精选项目，确认首页与项目详情。
+   然后在后台标签页创建/改名/删除一个标签，确认文章列表 chips 与公开标签页。
 
 长期解决服务器拉代码：
 
 - **Gitee 镜像（推荐）**：把 GitHub 仓库导入 Gitee，服务器从 Gitee 拉；本地同时 push 两个远端。
 - 或配置可用的 GitHub 代理。
 - bundle/scp 作为兜底。
-
-### 计划 3B：标签管理与搜索
-
-- 标签管理页（创建/删除/改名）
-- 标签筛选 UI（公开文章列表已支持 `tag` 查询参数）
-- 站内搜索：`GET /api/search`，文章 + 项目，`pg_trgm`
-- 前端搜索页
 
 ### 计划 3C：评论
 
@@ -198,6 +197,9 @@
 - 上传限制：5 MB；单边 ≤ 12000、总像素 ≤ 4000 万。
 - 媒体删除是“先 DB 后文件”，极端情况下可能留下孤儿文件。
 - 未登录访问后台会先在服务端打印一条 `API 401` 日志，随后正常重定向；不影响功能。
+- 搜索每组（文章/项目）最多返回 10 条，`total` 是两组条数之和（最多 20），不是全量计数。
+- 页头新增搜索入口后，窄屏导航更拥挤；后续做折叠菜单。
+- 标签改名可同时修改 slug，旧链接会 404（已确认的产品决定）。
 - 公开页/后台尚未各自加 `error.tsx`；运行时错误会退到 locale 级错误页。
 - `API_BASE_URL` 在 build 时固化；`NEXT_PUBLIC_SITE_URL` 在 build 时内联；改地址/域名必须重新 build。
 - 限流是进程内实现，生产保持单 uvicorn worker；nginx `limit_req` 兜底。
@@ -269,15 +271,15 @@ sudo systemctl restart myblog-api myblog-web
 继续 Z:\my_blog 个人博客项目。先读 HANDOFF.md、README.md 和
 docs/superpowers/specs/2026-10-19-personal-blog-design.md。
 
-当前状态：master 4847d0e，基础闭环、计划 2 后台管理、计划 3A 作品集已合并；
-后端 pytest 69 passed、Playwright 6 passed、build 成功。
-线上服务器 123.206.100.36（Ubuntu 24.04，HTTP，无域名）已部署计划 2，
-3A 尚未上线；服务器访问 GitHub 443 超时，需要按 HANDOFF 第 6 节用
-git bundle + scp 更新，bundle 在 Z:\my_blog_transfer\my_blog.bundle。
+当前状态：功能分支 feature/tags-search（HEAD bec7702），计划 3B 标签管理与站内搜索已完成；
+基础闭环、计划 2 后台管理、计划 3A 作品集已合并并上线；
+后端 pytest 85 passed、Playwright 9 passed、build 成功。
+线上服务器 123.206.100.36（Ubuntu 24.04，HTTP，无域名）已部署 3A；
+3B 待合并 master 并部署（无迁移、无新依赖，bundle → npm run build → restart）。
+服务器访问 GitHub 443 超时，按 HANDOFF 第 6 节用 git bundle + scp 更新。
 
-接下来：先把 3A 部署到服务器（bundle → alembic upgrade head → npm run build
-→ restart → 验证 /api/projects 和 /zh/projects），然后开始计划 3B
-（标签管理与站内搜索），先 brainstorming → spec → plan，再实现。
+接下来：合并 3B 到 master 并部署上线，然后开始计划 3C（评论），
+先 brainstorming → spec → plan，再实现。
 
 约束：不要在 master 上直接开发，用功能分支；不要读取/打印/提交 .env
 文件；实现用子代理驱动和两阶段审查。
