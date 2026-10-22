@@ -296,7 +296,7 @@ export type AdminTag = {id: number; name: string; slug: string; post_count: numb
 `frontend/src/messages/zh.json` 与 `en.json` 新增：
 
 - `nav.search`
-- `tags.title`、`tags.count`、`tags.empty`、`tags.back`
+- `tags.title`、`tags.count`、`tags.empty`
 - `search.title`、`search.placeholder`、`search.submit`、`search.prompt`、`search.empty`、`search.resultCount`、`search.posts`、`search.projects`
 - `admin.nav.tags`
 - `admin.tags.title`、`admin.tags.create`、`admin.tags.name`、`admin.tags.slug`、`admin.tags.postCount`、`admin.tags.edit`、`admin.tags.save`、`admin.tags.cancel`、`admin.tags.delete`、`admin.tags.confirmDelete`、`admin.tags.empty`、`admin.tags.conflict`、`admin.tags.invalid`、`admin.tags.createFailed`、`admin.tags.saveFailed`、`admin.tags.deleteFailed`

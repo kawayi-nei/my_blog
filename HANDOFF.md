@@ -8,7 +8,7 @@
 **基础闭环、计划 2（后台管理）、计划 3A（作品集）已上线；计划 3B（标签管理与站内搜索）功能分支已完成，待合并 `master`/上线。** 3B 当前在 `feature/tags-search` 分支。
 
 - 当前分支：`feature/tags-search`（计划 3B）
-- HEAD：`bec7702 refactor: reuse tag delete auth handling`
+- HEAD：以 `git log -1 --oneline` 为准（3B 功能与文档已提交）
 - 工作树：干净（本文档提交前）；3B 尚未合并到 `master`
 - 验证：后端 pytest **85 passed**；前端 Playwright **9 passed**；`npm run build` 成功
 - 已合并并删除的功能分支：`feature/foundation`、`feature/admin-posts`、`feature/projects`
@@ -156,7 +156,7 @@
    ```bash
    curl -s "http://123.206.100.36/api/search?q=next&locale=zh"
    curl -I http://123.206.100.36/zh/search
-   curl -I http://123.206.100.36/zh/tags/nextjs
+   curl -I http://123.206.100.36/zh/tags/backend
    ```
    然后在后台标签页创建/改名/删除一个标签，确认文章列表 chips 与公开标签页。
 
@@ -271,7 +271,7 @@ sudo systemctl restart myblog-api myblog-web
 继续 Z:\my_blog 个人博客项目。先读 HANDOFF.md、README.md 和
 docs/superpowers/specs/2026-10-19-personal-blog-design.md。
 
-当前状态：功能分支 feature/tags-search（HEAD bec7702），计划 3B 标签管理与站内搜索已完成；
+当前状态：功能分支 feature/tags-search（HEAD 见 git log），计划 3B 标签管理与站内搜索已完成；
 基础闭环、计划 2 后台管理、计划 3A 作品集已合并并上线；
 后端 pytest 85 passed、Playwright 9 passed、build 成功。
 线上服务器 123.206.100.36（Ubuntu 24.04，HTTP，无域名）已部署 3A；

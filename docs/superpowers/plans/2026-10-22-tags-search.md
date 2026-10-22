@@ -10,7 +10,16 @@
 
 **分支：** `feature/tags-search`（已创建，规格已提交 `01f4797`）
 
-> **实施记录（2026-10-22，任务 1）：** 执行中发现 `AdminPostListItem.tags` 复用 `AdminTagOut` 会因新增必填 `post_count` 导致带标签文章序列化 500。已新增 `AdminTagRef {id,name,slug}` 供后台文章使用，`AdminTagOut` 继承它并只增加 `post_count`；回归测试在 `backend/tests/test_admin_posts.py`。前端类型需对应拆分 `AdminTagRef` 与 `AdminTag`（见任务 4）。
+> **状态（2026-10-22）：** 本计划已全部完成并验证：后端 pytest **85 passed**、Playwright **9 passed**、`npm run build` 成功。实际测试数比原计划多 2 条，来自下述回归与清理测试。
+>
+> **实施记录（2026-10-22，任务 1）：** 执行中发现 `AdminPostListItem.tags` 复用 `AdminTagOut` 会因新增必填 `post_count` 导致带标签文章序列化 500。已新增 `AdminTagRef {id,name,slug}` 供后台文章使用，`AdminTagOut` 继承它并只增加 `post_count`；回归测试在 `backend/tests/test_admin_posts.py`。前端类型已对应拆分 `AdminTagRef` 与 `AdminTag`。
+>
+> **实施偏差（2026-10-22）：**
+> - 搜索结果的 `resultCount` 文案改为「显示 {count} 条结果」/「Showing {count} results」，避免把每组上限 10 条、total 最多 20 的截断值说成“全部命中”。
+> - `PostList` 改为由页面传入 `lastPage`，组件不再接收 `total/pageSize`，避免分页公式三处重复。
+> - 文章列表标签 chips 容器使用 `<nav aria-label>`（普通 div 的 `aria-label` 对辅助技术无效）。
+> - `ProjectCard` 增加 `headingLevel`，搜索页使用 h3，修正与分组 h2 同级的标题大纲问题。
+> - E2E 行定位改用 `data-testid="admin-tag-<slug>"`，并在删除后 reload 验证服务端持久化。
 
 ---
 
@@ -1058,7 +1067,7 @@ export type AdminTag = AdminTagRef & {
   "submit": "搜索",
   "prompt": "输入关键词开始搜索。",
   "empty": "没有找到匹配的内容。",
-  "resultCount": "找到 {count} 条结果",
+  "resultCount": "显示 {count} 条结果",
   "posts": "文章",
   "projects": "项目"
 },
@@ -1107,7 +1116,7 @@ export type AdminTag = AdminTagRef & {
   "submit": "Search",
   "prompt": "Enter keywords to start searching.",
   "empty": "No matching content found.",
-  "resultCount": "{count} results",
+  "resultCount": "Showing {count} results",
   "posts": "Posts",
   "projects": "Projects"
 },
@@ -1914,7 +1923,7 @@ cd Z:/my_blog/backend
 "venv/Scripts/python.exe" -m pytest -q
 ```
 
-预期：83 passed（原 69 条 + 标签 6 条 + 搜索 8 条）。
+预期：85 passed（原 69 条 + 标签 6 条 + 搜索 8 条 + 序列化回归 1 条 + 计数清理 1 条）。
 
 - [ ] **步骤 5：手工冒烟**
 
@@ -1928,7 +1937,7 @@ cd Z:/my_blog/backend
 
 - [ ] **步骤 6：更新 README**
 
-在 `README.md` 的功能概述中补充标签管理与站内搜索；把测试基线从「69 passed」「6 passed」更新为「83 passed」「9 passed」；在「后台管理」一节补充标签管理说明。
+在 `README.md` 的功能概述中补充标签管理与站内搜索；把测试基线从「69 passed」「6 passed」更新为「85 passed」「9 passed」；在「后台管理」一节补充标签管理说明。
 
 - [ ] **步骤 7：更新 HANDOFF**
 
