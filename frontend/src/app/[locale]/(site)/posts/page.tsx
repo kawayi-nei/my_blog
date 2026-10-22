@@ -20,8 +20,10 @@ export default async function PostsPage({
   const tTags = await getTranslations('tags');
   const rawPage = Array.isArray(pageParam) ? pageParam[0] : pageParam;
   const parsedPage = Number(rawPage);
-  const page =
-    Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const page = Math.min(
+    Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1,
+    100_000
+  );
 
   const [data, tags] = await Promise.all([
     getPosts({page, pageSize: PAGE_SIZE}),
@@ -39,7 +41,7 @@ export default async function PostsPage({
       <h1 className="font-mono text-2xl text-accent">&gt; {t('title')}_</h1>
 
       {visibleTags.length > 0 ? (
-        <div
+        <nav
           aria-label={tTags('title')}
           className="mt-6 flex flex-wrap items-center gap-2 font-mono text-xs"
         >
@@ -52,14 +54,13 @@ export default async function PostsPage({
               #{tag.name} <span className="text-accent">{tag.post_count}</span>
             </Link>
           ))}
-        </div>
+        </nav>
       ) : null}
 
       <PostList
         items={data.items}
-        total={data.total}
         page={page}
-        pageSize={PAGE_SIZE}
+        lastPage={lastPage}
         emptyText={t('empty')}
         locale={locale}
       />

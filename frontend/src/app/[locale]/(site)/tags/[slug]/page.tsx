@@ -18,16 +18,20 @@ export default async function TagPage({
   const t = await getTranslations('tags');
   const rawPage = Array.isArray(pageParam) ? pageParam[0] : pageParam;
   const parsedPage = Number(rawPage);
-  const page =
-    Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  const page = Math.min(
+    Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1,
+    100_000
+  );
 
-  const tags = await getTags();
+  const [tags, data] = await Promise.all([
+    getTags(),
+    getPosts({page, pageSize: PAGE_SIZE, tag: slug})
+  ]);
   const tag = tags.find((item) => item.slug === slug);
   if (!tag) {
     notFound();
   }
 
-  const data = await getPosts({page, pageSize: PAGE_SIZE, tag: slug});
   const lastPage = Math.max(1, Math.ceil(data.total / data.page_size));
   if (page > lastPage) {
     notFound();
@@ -44,9 +48,8 @@ export default async function TagPage({
 
       <PostList
         items={data.items}
-        total={data.total}
         page={page}
-        pageSize={PAGE_SIZE}
+        lastPage={lastPage}
         basePath={`/tags/${slug}`}
         emptyText={t('empty')}
         locale={locale}

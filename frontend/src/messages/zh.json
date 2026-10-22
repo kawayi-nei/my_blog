@@ -23,7 +23,8 @@
     "back": "返回文章列表",
     "views": "次阅读",
     "prev": "上一页",
-    "next": "下一页"
+    "next": "下一页",
+    "pagination": "文章分页"
   },
   "tags": {
     "title": "标签",

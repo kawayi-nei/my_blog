@@ -5,23 +5,20 @@ import type {PostListItem} from '@/lib/api';
 
 export default async function PostList({
   items,
-  total,
   page,
-  pageSize,
+  lastPage,
   locale,
   basePath = '/posts',
   emptyText
 }: {
   items: PostListItem[];
-  total: number;
   page: number;
-  pageSize: number;
+  lastPage: number;
   locale: string;
   basePath?: string;
   emptyText: string;
 }) {
   const t = await getTranslations('posts');
-  const lastPage = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <>
@@ -35,24 +32,29 @@ export default async function PostList({
         )}
       </div>
 
-      <nav className="mt-8 flex gap-4 font-mono text-sm">
-        {page > 1 ? (
-          <Link
-            href={`${basePath}?page=${page - 1}`}
-            className="hover:text-accent"
-          >
-            ← {t('prev')}
-          </Link>
-        ) : null}
-        {page < lastPage ? (
-          <Link
-            href={`${basePath}?page=${page + 1}`}
-            className="hover:text-accent"
-          >
-            {t('next')} →
-          </Link>
-        ) : null}
-      </nav>
+      {page > 1 || page < lastPage ? (
+        <nav
+          aria-label={t('pagination')}
+          className="mt-8 flex gap-4 font-mono text-sm"
+        >
+          {page > 1 ? (
+            <Link
+              href={`${basePath}?page=${page - 1}`}
+              className="hover:text-accent"
+            >
+              ← {t('prev')}
+            </Link>
+          ) : null}
+          {page < lastPage ? (
+            <Link
+              href={`${basePath}?page=${page + 1}`}
+              className="hover:text-accent"
+            >
+              {t('next')} →
+            </Link>
+          ) : null}
+        </nav>
+      ) : null}
     </>
   );
 }

@@ -23,11 +23,12 @@
     "back": "Back to posts",
     "views": "views",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "pagination": "Posts pagination"
   },
   "tags": {
     "title": "Tags",
-    "count": "{count} posts",
+    "count": "{count, plural, one {# post} other {# posts}}",
     "empty": "No posts under this tag yet"
   },
   "search": {
