@@ -1,8 +1,8 @@
 export const site = {
-  name: '彭科道',
-  nameEn: 'Peng Kedao',
+  name: '石勇',
+  nameEn: 'Shi Yong',
   github: 'https://github.com/kawayi-nei',
-  email: 'you@example.com',
-  title: '彭科道 | 水文与遥感',
+  email: '16650007036.com',
+  title: '彭科道 | 学习与生活',
   description: '记录遥感、水利与代码。'
 };
