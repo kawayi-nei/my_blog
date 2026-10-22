@@ -13,12 +13,15 @@ function formatMonth(value: string | null, locale: string) {
 
 export default async function ProjectCard({
   project,
-  locale
+  locale,
+  headingLevel = 2
 }: {
   project: ProjectListItem;
   locale: string;
+  headingLevel?: 2 | 3;
 }) {
   const t = await getTranslations('projects');
+  const Heading = headingLevel === 3 ? 'h3' : 'h2';
   const started = formatMonth(project.started_on, locale);
   const ended = project.ended_on
     ? formatMonth(project.ended_on, locale)
@@ -47,11 +50,11 @@ export default async function ProjectCard({
             </span>
           ) : null}
         </div>
-        <h2 className="mt-3 text-xl font-semibold">
+        <Heading className="mt-3 text-xl font-semibold">
           <Link href={`/projects/${project.slug}`} className="hover:text-accent">
             {project.title}
           </Link>
-        </h2>
+        </Heading>
         <p className="mt-2 text-sm text-muted">{project.summary}</p>
         <div className="mt-4 flex flex-wrap gap-2 font-mono text-xs text-accent">
           {project.tech_stack.map((tech) => (

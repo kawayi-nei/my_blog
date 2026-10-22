@@ -27,6 +27,7 @@ export default async function SearchPage({
       <form
         action={`/${locale}/search`}
         method="get"
+        role="search"
         className="mt-6 flex flex-wrap gap-3"
       >
         <label htmlFor="q" className="sr-only">
@@ -35,6 +36,7 @@ export default async function SearchPage({
         <input
           id="q"
           name="q"
+          type="search"
           defaultValue={q}
           maxLength={100}
           placeholder={t('placeholder')}
@@ -59,8 +61,11 @@ export default async function SearchPage({
           </p>
 
           {data.posts.length > 0 ? (
-            <section>
-              <h2 className="font-mono text-lg text-accent">
+            <section aria-labelledby="search-posts-heading">
+              <h2
+                id="search-posts-heading"
+                className="font-mono text-lg text-accent"
+              >
                 &gt; {t('posts')}
               </h2>
               <div className="mt-4 grid gap-4">
@@ -77,8 +82,11 @@ export default async function SearchPage({
           ) : null}
 
           {data.projects.length > 0 ? (
-            <section>
-              <h2 className="font-mono text-lg text-accent">
+            <section aria-labelledby="search-projects-heading">
+              <h2
+                id="search-projects-heading"
+                className="font-mono text-lg text-accent"
+              >
                 &gt; {t('projects')}
               </h2>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -87,6 +95,7 @@ export default async function SearchPage({
                     key={project.slug}
                     project={project}
                     locale={locale}
+                    headingLevel={3}
                   />
                 ))}
               </div>
