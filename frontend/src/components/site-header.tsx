@@ -24,6 +24,9 @@ export default function SiteHeader({
           <Link href="/posts" className="hover:text-foreground">
             {t('posts')}
           </Link>
+          <Link href="/search" className="hover:text-foreground">
+            {t('search')}
+          </Link>
           {adminEnabled ? (
             <Link href="/admin/posts" className="hover:text-foreground">
               {t('admin')}
