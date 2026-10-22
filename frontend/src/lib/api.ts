@@ -9,6 +9,10 @@ export type Tag = {
   slug: string;
 };
 
+export type TagWithCount = Tag & {
+  post_count: number;
+};
+
 export type PostListItem = {
   slug: string;
   title: string;
@@ -99,6 +103,10 @@ export async function getPostOrNull(
   }
 }
 
+export async function getTags(): Promise<TagWithCount[]> {
+  return fetchApi<TagWithCount[]>('/api/tags');
+}
+
 export type ProjectListItem = {
   slug: string;
   title: string;
@@ -151,6 +159,23 @@ export async function getProjectOrNull(
     }
     throw error;
   }
+}
+
+export type SearchResponse = {
+  posts: PostListItem[];
+  projects: ProjectListItem[];
+  total: number;
+};
+
+export async function search(params: {
+  q: string;
+  locale: ProjectLocale;
+}): Promise<SearchResponse> {
+  const query = new URLSearchParams({
+    q: params.q,
+    locale: params.locale
+  });
+  return fetchApi<SearchResponse>(`/api/search?${query.toString()}`);
 }
 
 export type SiteConfigResponse = {

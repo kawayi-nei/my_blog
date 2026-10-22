@@ -1,7 +1,11 @@
-export type AdminTag = {
+export type AdminTagRef = {
   id: number;
   name: string;
   slug: string;
+};
+
+export type AdminTag = AdminTagRef & {
+  post_count: number;
 };
 
 export type AdminPostListItem = {
@@ -13,7 +17,7 @@ export type AdminPostListItem = {
   status: 'draft' | 'published';
   published_at: string | null;
   updated_at: string;
-  tags: AdminTag[];
+  tags: AdminTagRef[];
 };
 
 export type AdminPostDetail = AdminPostListItem & {

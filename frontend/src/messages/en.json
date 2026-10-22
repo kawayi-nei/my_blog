@@ -1,6 +1,7 @@
 {
   "nav": {
     "posts": "Posts",
+    "search": "Search",
     "projects": "Projects",
     "github": "GitHub",
     "admin": "Admin"
@@ -23,6 +24,22 @@
     "views": "views",
     "prev": "Previous",
     "next": "Next"
+  },
+  "tags": {
+    "title": "Tags",
+    "count": "{count} posts",
+    "empty": "No posts under this tag yet"
+  },
+  "search": {
+    "title": "Search",
+    "label": "Search keywords",
+    "placeholder": "Type keywords…",
+    "submit": "Search",
+    "prompt": "Enter keywords to start searching.",
+    "empty": "No matching content found.",
+    "resultCount": "Showing {count} results",
+    "posts": "Posts",
+    "projects": "Projects"
   },
   "projects": {
     "title": "Projects",
@@ -49,6 +66,7 @@
       "posts": "Posts",
       "projects": "Projects",
       "media": "Media",
+      "tags": "Tags",
       "backToSite": "Back to site",
       "logout": "Log out",
       "logoutFailed": "Log out failed. Please try again."
@@ -194,6 +212,25 @@
           "uploadFailed": "Cover upload failed"
         }
       }
+    },
+    "tags": {
+      "title": "Tags",
+      "name": "Name",
+      "slug": "Slug",
+      "create": "Create",
+      "postCount": "{count} posts",
+      "edit": "Edit",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "empty": "No tags yet",
+      "createFailed": "Create failed. Please try again.",
+      "saveFailed": "Save failed. Please try again.",
+      "deleteFailed": "Delete failed. Please try again.",
+      "conflict": "Name or slug already exists",
+      "invalid": "Invalid input. Check the name and slug.",
+      "confirmDelete": "Delete tag “{name}”? It affects {count} posts; posts will be kept."
     },
     "media": {
       "title": "Media",
