@@ -44,7 +44,13 @@ export default function PostCard({
       <p className="mt-2 text-sm text-muted">{post.excerpt}</p>
       <div className="mt-4 flex flex-wrap gap-2 font-mono text-xs text-accent">
         {post.tags.map((tag) => (
-          <span key={tag.slug}>#{tag.name}</span>
+          <Link
+            key={tag.slug}
+            href={`/tags/${tag.slug}`}
+            className="hover:underline"
+          >
+            #{tag.name}
+          </Link>
         ))}
       </div>
     </article>

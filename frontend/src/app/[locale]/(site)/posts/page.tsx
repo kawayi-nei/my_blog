@@ -1,8 +1,8 @@
 import {getTranslations, setRequestLocale} from 'next-intl/server';
 import {notFound} from 'next/navigation';
-import PostCard from '@/components/post-card';
+import PostList from '@/components/post-list';
 import {Link} from '@/i18n/navigation';
-import {getPosts} from '@/lib/api';
+import {getPosts, getTags} from '@/lib/api';
 
 const PAGE_SIZE = 10;
 
@@ -17,43 +17,52 @@ export default async function PostsPage({
   const {page: pageParam} = await searchParams;
   setRequestLocale(locale);
   const t = await getTranslations('posts');
+  const tTags = await getTranslations('tags');
   const rawPage = Array.isArray(pageParam) ? pageParam[0] : pageParam;
   const parsedPage = Number(rawPage);
   const page =
     Number.isSafeInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  const data = await getPosts({page, pageSize: PAGE_SIZE});
+  const [data, tags] = await Promise.all([
+    getPosts({page, pageSize: PAGE_SIZE}),
+    getTags()
+  ]);
   const lastPage = Math.max(1, Math.ceil(data.total / data.page_size));
   if (page > lastPage) {
     notFound();
   }
 
+  const visibleTags = tags.filter((tag) => tag.post_count > 0);
+
   return (
     <section className="mx-auto max-w-5xl px-4 py-12">
       <h1 className="font-mono text-2xl text-accent">&gt; {t('title')}_</h1>
 
-      <div className="mt-8 grid gap-4">
-        {data.items.length === 0 ? (
-          <p className="text-muted">{t('empty')}</p>
-        ) : (
-          data.items.map((post) => (
-            <PostCard key={post.slug} post={post} locale={locale} />
-          ))
-        )}
-      </div>
+      {visibleTags.length > 0 ? (
+        <div
+          aria-label={tTags('title')}
+          className="mt-6 flex flex-wrap items-center gap-2 font-mono text-xs"
+        >
+          {visibleTags.map((tag) => (
+            <Link
+              key={tag.slug}
+              href={`/tags/${tag.slug}`}
+              className="rounded border border-border px-2 py-1 text-muted hover:border-accent hover:text-accent"
+            >
+              #{tag.name} <span className="text-accent">{tag.post_count}</span>
+            </Link>
+          ))}
+        </div>
+      ) : null}
 
-      <nav className="mt-8 flex gap-4 font-mono text-sm">
-        {page > 1 ? (
-          <Link href={`/posts?page=${page - 1}`} className="hover:text-accent">
-            ← {t('prev')}
-          </Link>
-        ) : null}
-        {page < lastPage ? (
-          <Link href={`/posts?page=${page + 1}`} className="hover:text-accent">
-            {t('next')} →
-          </Link>
-        ) : null}
-      </nav>
+      <PostList
+        items={data.items}
+        total={data.total}
+        page={page}
+        pageSize={PAGE_SIZE}
+        emptyText={t('empty')}
+        locale={locale}
+      />
     </section>
   );
 }
