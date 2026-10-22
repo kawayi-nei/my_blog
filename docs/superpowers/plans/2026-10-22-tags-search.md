@@ -10,13 +10,17 @@
 
 **分支：** `feature/tags-search`（已创建，规格已提交 `01f4797`）
 
+> **实施记录（2026-10-22，任务 1）：** 执行中发现 `AdminPostListItem.tags` 复用 `AdminTagOut` 会因新增必填 `post_count` 导致带标签文章序列化 500。已新增 `AdminTagRef {id,name,slug}` 供后台文章使用，`AdminTagOut` 继承它并只增加 `post_count`；回归测试在 `backend/tests/test_admin_posts.py`。前端类型需对应拆分 `AdminTagRef` 与 `AdminTag`（见任务 4）。
+
 ---
 
 ## 文件结构
 
 **后端**
 
-- 修改 `backend/app/schemas/admin_tag.py`：`AdminTagOut` 增加 `post_count`，新增 `AdminTagUpdate`。
+- 修改 `backend/app/schemas/admin_tag.py`：新增 `AdminTagRef`，`AdminTagOut` 继承它并增加 `post_count`，新增 `AdminTagUpdate`。
+- 修改 `backend/app/schemas/admin_post.py`：`AdminPostListItem.tags` 改用 `AdminTagRef`。
+- 修改 `backend/tests/test_admin_posts.py`：带标签文章序列化回归测试。
 - 修改 `backend/app/services/admin_tags.py`：列表计数、更新、删除。
 - 修改 `backend/app/api/admin/tags.py`：PATCH/DELETE 路由与响应组装。
 - 创建 `backend/app/schemas/search.py`：`SearchResponse`。
@@ -52,7 +56,9 @@
 
 **文件：**
 - 修改：`backend/tests/test_admin_tags.py`
+- 修改：`backend/tests/test_admin_posts.py`
 - 修改：`backend/app/schemas/admin_tag.py`
+- 修改：`backend/app/schemas/admin_post.py`
 - 修改：`backend/app/services/admin_tags.py`
 - 修改：`backend/app/api/admin/tags.py`
 
@@ -430,7 +436,7 @@ cd Z:/my_blog/backend
 - [ ] **步骤 7：Commit**
 
 ```bash
-git add backend/app/schemas/admin_tag.py backend/app/services/admin_tags.py backend/app/api/admin/tags.py backend/tests/test_admin_tags.py
+git add backend/app/schemas/admin_tag.py backend/app/schemas/admin_post.py backend/app/services/admin_tags.py backend/app/api/admin/tags.py backend/tests/test_admin_tags.py backend/tests/test_admin_posts.py
 git commit -m "feat: add tag update and delete APIs with post counts"
 ```
 
@@ -1020,13 +1026,18 @@ export async function search(params: {
 将 `frontend/src/lib/admin-types.ts` 的 `AdminTag` 替换为：
 
 ```ts
-export type AdminTag = {
+export type AdminTagRef = {
   id: number;
   name: string;
   slug: string;
+};
+
+export type AdminTag = AdminTagRef & {
   post_count: number;
 };
 ```
+
+同时把 `AdminPostListItem.tags` 的类型从 `AdminTag[]` 改为 `AdminTagRef[]`（后端文章接口返回轻量标签）。
 
 - [ ] **步骤 3：添加中文文案**
 

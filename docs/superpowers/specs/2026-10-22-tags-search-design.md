@@ -54,10 +54,13 @@
 **Schema**
 
 ```python
-class AdminTagOut(BaseModel):
+class AdminTagRef(BaseModel):
     id: int
     name: str
     slug: str
+
+
+class AdminTagOut(AdminTagRef):
     post_count: int
 
 
@@ -71,6 +74,8 @@ class AdminTagUpdate(BaseModel):
 ```
 
 `post_count` 统计该标签关联的全部文章（含草稿），用于管理页删除前提示影响面。创建后的响应 `post_count` 为 0。
+
+后台文章接口（`AdminPostListItem.tags`）继续使用轻量 `AdminTagRef`，不复用 `AdminTagOut`，避免文章序列化时强制要求 `post_count`。
 
 **接口**
 
