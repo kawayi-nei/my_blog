@@ -142,10 +142,10 @@ export async function getProject(
   slug: string,
   locale: ProjectLocale
 ): Promise<ProjectDetail> {
-  const search = new URLSearchParams();
-  search.set('locale', locale);
+  const query = new URLSearchParams();
+  query.set('locale', locale);
   return fetchApi<ProjectDetail>(
-    `/api/projects/${encodeURIComponent(slug)}?${search.toString()}`
+    `/api/projects/${encodeURIComponent(slug)}?${query.toString()}`
   );
 }
 
