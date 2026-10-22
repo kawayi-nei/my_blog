@@ -5,15 +5,17 @@ import {useRouter} from 'next/navigation';
 import {useState} from 'react';
 import type {AdminTag} from '@/lib/admin-types';
 
-function sortTags(tags: AdminTag[]) {
-  return [...tags].sort((a, b) => a.name.localeCompare(b.name));
+function sortTags(tags: AdminTag[], locale: string) {
+  return [...tags].sort((a, b) =>
+    a.name.localeCompare(b.name, locale === 'zh' ? 'zh-CN' : 'en-US')
+  );
 }
 
 export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
   const t = useTranslations('admin.tags');
   const locale = useLocale();
   const router = useRouter();
-  const [tags, setTags] = useState(() => sortTags(initialTags));
+  const [tags, setTags] = useState(() => sortTags(initialTags, locale));
   const [newName, setNewName] = useState('');
   const [newSlug, setNewSlug] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -57,7 +59,7 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
         return;
       }
       const tag = (await response.json()) as AdminTag;
-      setTags((current) => sortTags([...current, tag]));
+      setTags((current) => sortTags([...current, tag], locale));
       setNewName('');
       setNewSlug('');
     } catch {
@@ -93,9 +95,12 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
       }
       const tag = (await response.json()) as AdminTag;
       setTags((current) =>
-        sortTags(current.map((item) => (item.id === id ? tag : item)))
+        sortTags(
+          current.map((item) => (item.id === id ? tag : item)),
+          locale
+        )
       );
-      setEditingId(null);
+      setEditingId((current) => (current === id ? null : current));
     } catch {
       setError(t('saveFailed'));
     } finally {
@@ -122,11 +127,11 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
         router.replace(`/${locale}/admin/login`);
         return;
       }
-      if (!response.ok) {
-        handleFailure(response.status, t('deleteFailed'));
+      if (response.ok || response.status === 404) {
+        setTags((current) => current.filter((item) => item.id !== tag.id));
         return;
       }
-      setTags((current) => current.filter((item) => item.id !== tag.id));
+      handleFailure(response.status, t('deleteFailed'));
     } catch {
       setError(t('deleteFailed'));
     } finally {
@@ -145,6 +150,7 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
           <input
             value={newName}
             onChange={(event) => setNewName(event.target.value)}
+            disabled={pending}
             required
             className="rounded border border-border bg-surface px-2 py-1"
           />
@@ -154,6 +160,7 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
           <input
             value={newSlug}
             onChange={(event) => setNewSlug(event.target.value)}
+            disabled={pending}
             required
             className="rounded border border-border bg-surface px-2 py-1"
           />
@@ -211,14 +218,17 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
                   </label>
                   <button
                     type="submit"
-                    disabled={pending}
+                    disabled={pending || !editName.trim() || !editSlug.trim()}
                     className="rounded bg-accent px-3 py-1 font-semibold text-black disabled:opacity-60"
                   >
                     {pending ? t('saving') : t('save')}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setEditingId(null)}
+                    onClick={() => {
+                      setError(null);
+                      setEditingId(null);
+                    }}
                     className="rounded border border-border px-3 py-1 hover:border-accent"
                   >
                     {t('cancel')}
@@ -237,6 +247,7 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
                     <button
                       type="button"
                       onClick={() => startEdit(tag)}
+                      aria-label={`${t('edit')} ${tag.name}`}
                       className="hover:text-accent"
                     >
                       {t('edit')}
@@ -244,6 +255,7 @@ export default function TagManager({tags: initialTags}: {tags: AdminTag[]}) {
                     <button
                       type="button"
                       onClick={() => void remove(tag)}
+                      aria-label={`${t('delete')} ${tag.name}`}
                       disabled={pending}
                       className="text-red-400 hover:underline disabled:opacity-60"
                     >

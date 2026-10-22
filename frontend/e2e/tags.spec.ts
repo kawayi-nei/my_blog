@@ -23,9 +23,14 @@ test('admin can create, rename and delete a tag', async ({page}) => {
   await row.getByRole('button', {name: '保存'}).click();
   await expect(row).toContainText(renamed);
 
-  page.once('dialog', (dialog) => dialog.accept());
+  page.once('dialog', async (dialog) => {
+    expect(dialog.message()).toContain(renamed);
+    await dialog.accept();
+  });
   await row.getByRole('button', {name: '删除'}).click();
   await expect(row).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByTestId(`admin-tag-${slug}`)).toHaveCount(0);
 });
 
 test('post tag links open the tag page and unknown tags are 404', async ({

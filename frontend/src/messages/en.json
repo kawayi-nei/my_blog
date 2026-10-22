@@ -219,7 +219,7 @@
       "name": "Name",
       "slug": "Slug",
       "create": "Create",
-      "postCount": "{count} posts",
+      "postCount": "{count, plural, one {# post} other {# posts}}",
       "edit": "Edit",
       "save": "Save",
       "saving": "Saving…",
@@ -231,7 +231,7 @@
       "deleteFailed": "Delete failed. Please try again.",
       "conflict": "Name or slug already exists",
       "invalid": "Invalid input. Check the name and slug.",
-      "confirmDelete": "Delete tag “{name}”? It affects {count} posts; posts will be kept."
+      "confirmDelete": "Delete tag “{name}”? It affects {count, plural, one {# post} other {# posts}}; posts will be kept."
     },
     "media": {
       "title": "Media",
