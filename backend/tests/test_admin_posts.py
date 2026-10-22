@@ -149,3 +149,41 @@ async def test_published_post_visible_publicly(admin_client, client):
     public = await client.get("/api/posts/public-after-publish")
     assert public.status_code == 200
     assert public.json()["title"] == "后台发布"
+
+
+async def test_admin_post_with_tag_serializes_without_post_count(admin_client):
+    tag = (
+        await admin_client.post(
+            "/api/admin/tags", json={"name": "后端", "slug": "backend"}
+        )
+    ).json()
+
+    created = await admin_client.post(
+        "/api/admin/posts",
+        json={
+            "slug": "tagged-post",
+            "title": "带标签文章",
+            "content_md": "x",
+            "status": "published",
+            "tag_ids": [tag["id"]],
+        },
+    )
+    assert created.status_code == 201
+    assert created.json()["tags"] == [
+        {"id": tag["id"], "name": "后端", "slug": "backend"}
+    ]
+
+    listed = await admin_client.get("/api/admin/posts")
+    assert listed.status_code == 200
+    item = next(
+        item for item in listed.json()["items"] if item["slug"] == "tagged-post"
+    )
+    assert item["tags"] == [
+        {"id": tag["id"], "name": "后端", "slug": "backend"}
+    ]
+
+    detail = await admin_client.get(f"/api/admin/posts/{created.json()['id']}")
+    assert detail.status_code == 200
+    assert detail.json()["tags"] == [
+        {"id": tag["id"], "name": "后端", "slug": "backend"}
+    ]

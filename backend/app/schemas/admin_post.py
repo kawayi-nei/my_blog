@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.admin_tag import AdminTagOut
+from app.schemas.admin_tag import AdminTagRef
 
 PostStatus = Literal["draft", "published"]
 PostLanguage = Literal["zh", "en"]
@@ -43,7 +43,7 @@ class AdminPostListItem(BaseModel):
     status: str
     published_at: datetime | None
     updated_at: datetime
-    tags: list[AdminTagOut]
+    tags: list[AdminTagRef]
 
 
 class AdminPostListResponse(BaseModel):

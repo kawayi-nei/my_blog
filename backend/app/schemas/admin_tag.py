@@ -19,6 +19,14 @@ class AdminTagUpdate(BaseModel):
         return self
 
 
+class AdminTagRef(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    slug: str
+
+
 class AdminTagOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
