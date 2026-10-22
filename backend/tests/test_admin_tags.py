@@ -219,3 +219,23 @@ async def test_delete_tag_detaches_posts(admin_client, db_session):
 async def test_delete_missing_tag_returns_404(admin_client):
     response = await admin_client.delete("/api/admin/tags/999999")
     assert response.status_code == 404
+
+
+async def test_update_tag_returns_post_count(admin_client, db_session):
+    tag = Tag(name="后端", slug="backend")
+    db_session.add(
+        Post(
+            slug="counted",
+            title="计数",
+            content_md="x",
+            status="draft",
+            tags=[tag],
+        )
+    )
+    await db_session.commit()
+
+    response = await admin_client.patch(
+        f"/api/admin/tags/{tag.id}", json={"name": "服务端"}
+    )
+    assert response.status_code == 200
+    assert response.json()["post_count"] == 1

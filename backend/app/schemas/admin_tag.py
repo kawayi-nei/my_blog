@@ -15,7 +15,7 @@ class AdminTagUpdate(BaseModel):
     @model_validator(mode="after")
     def require_at_least_one(self) -> "AdminTagUpdate":
         if self.name is None and self.slug is None:
-            raise ValueError("name or slug is required")
+            raise ValueError("name 或 slug 至少提供一个")
         return self
 
 
@@ -27,10 +27,5 @@ class AdminTagRef(BaseModel):
     slug: str
 
 
-class AdminTagOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    name: str
-    slug: str
+class AdminTagOut(AdminTagRef):
     post_count: int

@@ -36,7 +36,7 @@ async def _ensure_available(
     *,
     name: str | None,
     slug: str | None,
-    exclude_id: int,
+    exclude_id: int | None = None,
 ) -> None:
     conditions = []
     if name is not None:
@@ -46,19 +46,16 @@ async def _ensure_available(
     if not conditions:
         return
 
-    existing = await db.scalar(
-        select(Tag.id).where(or_(*conditions), Tag.id != exclude_id)
-    )
+    stmt = select(Tag.id).where(or_(*conditions))
+    if exclude_id is not None:
+        stmt = stmt.where(Tag.id != exclude_id)
+    existing = await db.scalar(stmt)
     if existing is not None:
         raise HTTPException(status_code=409, detail="标签名称或 slug 已存在")
 
 
 async def create_admin_tag(db: AsyncSession, data: AdminTagCreate) -> Tag:
-    existing = await db.scalar(
-        select(Tag.id).where(or_(Tag.name == data.name, Tag.slug == data.slug))
-    )
-    if existing is not None:
-        raise HTTPException(status_code=409, detail="标签名称或 slug 已存在")
+    await _ensure_available(db, name=data.name, slug=data.slug)
 
     tag = Tag(name=data.name, slug=data.slug)
     db.add(tag)
@@ -101,5 +98,6 @@ async def delete_admin_tag(db: AsyncSession, tag_id: int) -> None:
     if tag is None:
         raise HTTPException(status_code=404, detail="标签不存在")
 
+    # Tag.posts 是 lazy="raise"，ORM 删除会触发集合加载；用 Core 删除并依赖 DB 级联
     await db.execute(sql_delete(Tag).where(Tag.id == tag_id))
     await db.commit()
